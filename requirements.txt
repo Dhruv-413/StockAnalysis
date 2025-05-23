@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic
+httpx
+google-generativeai
+slowapi
+limits
+redis
+python-multipart
+python-dotenv
+pytest
+pytest-asyncio
+aiofiles
+cachetools
+tenacity
