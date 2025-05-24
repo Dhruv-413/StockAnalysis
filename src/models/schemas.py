@@ -48,14 +48,15 @@ class StockCandle(BaseModel):
     timestamp: datetime
 
 class PriceChangeData(BaseModel):
-    period: str
-    open: Optional[float] = None
-    close: Optional[float] = None
-    high: Optional[float] = None
-    low: Optional[float] = None
-    change: Optional[float] = None
-    change_percent: Optional[float] = None
-    candles: Optional[List[StockCandle]] = None
+    period: str # e.g., "7 days", "1 month"
+    open: Optional[float] = None # Price at the start of the period
+    close: Optional[float] = None # Price at the end of the period (most recent)
+    high: Optional[float] = None # Highest price during the period (if available)
+    low: Optional[float] = None # Lowest price during the period (if available)
+    change: Optional[float] = None # Absolute change over the period
+    change_percent: Optional[float] = None # Percentage change over the period
+    candles: Optional[List[StockCandle]] = None # Optional: full candle data for the period
+    meta: Optional[Dict[str, Any]] = None # For additional info like exact dates used
 
 class FinancialReport(BaseModel):
     period_end_date: str

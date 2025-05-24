@@ -49,18 +49,25 @@ class CacheManager:
 
 cache_manager = CacheManager()
 
-def cached(ttl: int = 300):
+def cached(ttl: int = 3600):
+    """
+    Decorator for caching function results with TTL support.
+    Now includes more specific cache key generation.
+    """
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            key = cache_manager._generate_key(func.__name__, *args, **kwargs)
-            result = await cache_manager.get(key)
+            # Create more specific cache key that includes all parameters
+            # This prevents generic responses for different queries
+            cache_key = f"{func.__name__}:{hash(str(args) + str(sorted(kwargs.items())))}"
+            
+            result = await cache_manager.get(cache_key)
             
             if result is not None:
                 return result
             
             result = await func(*args, **kwargs)
-            await cache_manager.set(key, result, ttl)
+            await cache_manager.set(cache_key, result, ttl)
             return result
         
         return wrapper
