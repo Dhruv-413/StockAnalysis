@@ -13,3 +13,4 @@ pytest-asyncio
 aiofiles
 cachetools
 tenacity
+pydantic_settings
