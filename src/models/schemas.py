@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
@@ -12,12 +12,6 @@ class AnalysisRequest(BaseModel):
     query_type: QueryType = QueryType.NATURAL_LANGUAGE
     include_fundamentals: bool = False
     include_insider_activity: bool = False
-
-class StructuredQuery(BaseModel):
-    ticker: str = Field(..., description="Stock ticker symbol")
-    action: str = Field(..., description="Action to perform")
-    timeframe: Optional[str] = "1d"
-    additional_params: Optional[Dict[str, Any]] = None
 
 class NewsItem(BaseModel):
     title: str
@@ -35,9 +29,9 @@ class PriceData(BaseModel):
     change_percent: float
     volume: Optional[int] = None
     market_cap: Optional[float] = None
-    high_price_today: Optional[float] = None # From quote
-    low_price_today: Optional[float] = None # From quote
-    open_price_today: Optional[float] = None # From quote
+    high_price_today: Optional[float] = None
+    low_price_today: Optional[float] = None
+    open_price_today: Optional[float] = None
 
 class StockCandle(BaseModel):
     open: float
@@ -48,47 +42,15 @@ class StockCandle(BaseModel):
     timestamp: datetime
 
 class PriceChangeData(BaseModel):
-    period: str # e.g., "7 days", "1 month"
-    open: Optional[float] = None # Price at the start of the period
-    close: Optional[float] = None # Price at the end of the period (most recent)
-    high: Optional[float] = None # Highest price during the period (if available)
-    low: Optional[float] = None # Lowest price during the period (if available)
-    change: Optional[float] = None # Absolute change over the period
-    change_percent: Optional[float] = None # Percentage change over the period
-    candles: Optional[List[StockCandle]] = None # Optional: full candle data for the period
-    meta: Optional[Dict[str, Any]] = None # For additional info like exact dates used
-
-class FinancialReport(BaseModel):
-    period_end_date: str
-    filing_date: str
-    report: Dict[str, Any] # Can be complex, so keeping as dict for now
-
-class FinancialsData(BaseModel):
-    annual_reports: List[FinancialReport] = []
-    quarterly_reports: List[FinancialReport] = []
-
-class EventData(BaseModel):
-    event_type: str # e.g., earnings, dividend, split, IPO
-    date: Optional[datetime] = None
-    description: str
-    details: Optional[Dict[str, Any]] = None
-
-class InsiderTransaction(BaseModel):
-    name: str
-    share: int
-    change: int # Number of shares transacted
-    filing_date: datetime
-    transaction_date: datetime
-    transaction_price: float
-    transaction_code: str # P-Purchase, S-Sale
-
-class MarketNewsItem(NewsItem): # Inherits from NewsItem, can add more fields if needed
-    category: Optional[str] = None
-
-class TechnicalIndicator(BaseModel):
-    name: str
-    value: Any # Could be a float, dict, list of dicts depending on indicator
-    parameters: Dict[str, Any]
+    period: str
+    open: Optional[float] = None
+    close: Optional[float] = None
+    high: Optional[float] = None
+    low: Optional[float] = None
+    change: Optional[float] = None
+    change_percent: Optional[float] = None
+    candles: Optional[List[StockCandle]] = None
+    meta: Optional[Dict[str, Any]] = None
 
 class AnalysisResult(BaseModel):
     ticker: str
@@ -100,14 +62,7 @@ class AnalysisResult(BaseModel):
     sentiment: Optional[str] = None
     confidence_score: Optional[float] = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    
-    # New fields for additional agent data
     price_change_data: Optional[List[PriceChangeData]] = None
-    financials: Optional[FinancialsData] = None
-    upcoming_events: Optional[List[EventData]] = None
-    insider_activity: Optional[List[InsiderTransaction]] = None
-    # market_scan_results: Optional[List[MarketNewsItem]] = None # For market scanner, if applicable to single stock analysis
-    technical_indicators: Optional[List[TechnicalIndicator]] = None
 
 class AgentResponse(BaseModel):
     agent_name: str

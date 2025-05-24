@@ -175,7 +175,7 @@ class FinnhubAdapter(BaseAdapter):
         """Get dividend data. Dates YYYY-MM-DD"""
         try:
             params = {"symbol": ticker, "from": from_date, "to": to_date}
-            data = await self._make_request("stock/dividend2", params) # dividend2 is recommended
+            data = await self._make_request("stock/dividend2", params) 
             return data
         except Exception as e:
             self.logger.error(f"Error getting dividend calendar for {ticker}: {e}")
@@ -210,10 +210,10 @@ class FinnhubAdapter(BaseAdapter):
         """Get general market news. Category can be general, forex, crypto, merger."""
         try:
             params = {"category": category}
-            if min_id > 0: # For pagination, though not fully implemented here
+            if min_id > 0: 
                 params["minId"] = min_id
             
-            data = await self._make_request("news", params) # General news endpoint
+            data = await self._make_request("news", params)
             
             news_items = []
             for article in data[:20]: # Limit to 20 most recent
@@ -335,7 +335,6 @@ class FinnhubAdapter(BaseAdapter):
             except Exception as e:
                 self.logger.warning(f"Historical candles failed for {ticker}: {e}")
             
-            # Fallback: create mock historical data using current price and news sentiment
             self.logger.info(f"Using fallback method for {ticker} historical data")
             
             # Get current quote for reference
@@ -346,8 +345,7 @@ class FinnhubAdapter(BaseAdapter):
             current_price = current_quote.get('current_price', 100)
             
             # Estimate historical price based on typical volatility
-            # This is a simplified approximation
-            estimated_change_percent = -2.5  # Conservative estimate for tech stocks over 7 days
+            estimated_change_percent = -2.5 
             estimated_start_price = current_price / (1 + estimated_change_percent / 100)
             
             result = {
@@ -358,8 +356,8 @@ class FinnhubAdapter(BaseAdapter):
                 "end_price": round(current_price, 2),
                 "price_change": round(current_price - estimated_start_price, 2),
                 "price_change_percent": round(estimated_change_percent, 2),
-                "period_high": round(current_price * 1.05, 2),  # Estimate
-                "period_low": round(current_price * 0.95, 2),   # Estimate
+                "period_high": round(current_price * 1.05, 2),
+                "period_low": round(current_price * 0.95, 2),  
                 "data_points": days_ago,
                 "resolution_used": "estimated"
             }

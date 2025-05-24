@@ -6,7 +6,7 @@ from src.utils.cache import cached
 class TwelveDataAdapter(BaseAdapter):
     def __init__(self):
         super().__init__(
-            api_key=settings.twelve_data_api_key or "YOUR_TWELVE_DATA_API_KEY_HERE", # Fallback if not in env
+            api_key=settings.twelve_data_api_key or "YOUR_TWELVE_DATA_API_KEY_HERE",
             base_url="https://api.twelvedata.com"
         )
         if not settings.twelve_data_api_key:
@@ -36,7 +36,7 @@ class TwelveDataAdapter(BaseAdapter):
                 "symbol": symbol,
                 "interval": interval,
                 "outputsize": outputsize,
-                **kwargs # Additional parameters specific to the indicator
+                **kwargs 
             }
             # The endpoint for indicators is usually the indicator name itself
             data = await self._make_request(indicator.lower(), params)
@@ -68,17 +68,3 @@ class TwelveDataAdapter(BaseAdapter):
         except Exception as e:
             self.logger.error(f"Error getting OHLCV for {symbol} from Twelve Data: {e}")
             return None
-
-# Example usage (for testing, not part of the class)
-# async def main():
-#     adapter = TwelveDataAdapter()
-#     if adapter.api_key and adapter.api_key != "YOUR_TWELVE_DATA_API_KEY_HERE":
-#         rsi_data = await adapter.get_technical_indicator("AAPL", "rsi", interval="1day")
-#         print("RSI Data:", rsi_data)
-#         ohlcv_data = await adapter.get_price_ohlcv("AAPL", interval="1day")
-#         print("OHLCV Data:", ohlcv_data)
-#     await adapter.close()
-
-# if __name__ == "__main__":
-#     import asyncio
-#     asyncio.run(main())

@@ -1,6 +1,6 @@
 import asyncio
-import re # For parsing timeframe
-from typing import Dict, Any, List, Optional # Added Optional
+import re
+from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from src.agents.ticker_identification_agent import TickerIdentificationAgent
 from src.agents.ticker_price_agent import TickerPriceAgent
@@ -16,7 +16,7 @@ class MainOrchestrator:
         self.logger = setup_logger("MainOrchestrator")
         
         # Initialize agents
-        self.gemini_adapter = GeminiAdapter()  # Use Gemini for intent extraction
+        self.gemini_adapter = GeminiAdapter()
         self.ticker_agent = TickerIdentificationAgent()
         self.price_agent = TickerPriceAgent()
         self.news_agent = TickerNewsAgent()
@@ -24,37 +24,23 @@ class MainOrchestrator:
         self.price_change_agent = TickerPriceChangeAgent()
 
     def _parse_timeframe_to_days(self, timeframe_str: str) -> Optional[int]:
-        """
-        Parse a timeframe string into number of days.
-        """
+        """Parse timeframe string to number of days"""
         if not timeframe_str:
             return None
         
         timeframe_lower = timeframe_str.lower().strip()
-        self.logger.info(f"Parsing timeframe: '{timeframe_lower}'")
         
-        # Enhanced parsing for common timeframes
-        if "7 days" in timeframe_lower or "seven days" in timeframe_lower:
+        # Common timeframes
+        if "7 days" in timeframe_lower or "week" in timeframe_lower:
             return 7
-        elif "week" in timeframe_lower or "1 week" in timeframe_lower:
-            return 7
-        elif "2 weeks" in timeframe_lower or "two weeks" in timeframe_lower:
-            return 14
-        elif "month" in timeframe_lower or "30 days" in timeframe_lower:
+        elif "30 days" in timeframe_lower or "month" in timeframe_lower:
             return 30
-        elif "3 months" in timeframe_lower or "quarter" in timeframe_lower:
-            return 90
-        elif "6 months" in timeframe_lower:
-            return 180
-        elif "year" in timeframe_lower or "12 months" in timeframe_lower:
-            return 365
         elif "today" in timeframe_lower:
             return 1
         elif "yesterday" in timeframe_lower:
             return 2
         
-        # Try to extract number + unit
-        import re
+        # Extract number + unit
         match = re.search(r'(\d+)\s*(day|week|month|year)', timeframe_lower)
         if match:
             number, unit = match.groups()
@@ -68,25 +54,17 @@ class MainOrchestrator:
             elif unit.startswith('year'):
                 return number * 365
         
-        self.logger.warning(f"Could not parse timeframe string '{timeframe_str}' to days.")
         return None
 
     async def process_request(self, request: AnalysisRequest) -> AnalysisResult:
         """Process stock analysis request through agent pipeline"""
         try:
-            self.logger.info(f"=== ORCHESTRATOR START ===")
-            self.logger.info(f"Raw user query: '{request.query}'")
-            self.logger.info(f"Query type: '{request.query_type}'")
-            
-            # Step 1: Extract intent and identify ticker
+            # Extract intent and identify ticker
             intent_data = await self._extract_intent(request)
-            self.logger.info(f"Extracted intent_data: {intent_data}")
-            
             extracted_intent_str = intent_data.get("intent", "general_query")
             
-            # Step 2: Identify ticker if not already known
+            # Identify ticker
             ticker_data_response = await self._identify_ticker(request, intent_data)
-            
             ticker_info = ticker_data_response.data if ticker_data_response and ticker_data_response.success else {}
 
             if not ticker_info.get("ticker"):
@@ -100,61 +78,63 @@ class MainOrchestrator:
             company_name = ticker_info.get("company_name")
             company_profile_data = ticker_info.get("profile_data", {})
             
-            # Parse timeframe - use the extracted timeframe, not just default
+            # Parse timeframe
             timeframe_str = intent_data.get("timeframe", "recent")
-            self.logger.info(f"DEBUG: Timeframe from intent: '{timeframe_str}'")
             duration_days = self._parse_timeframe_to_days(timeframe_str)
             
-            # For historical analysis, always try to get historical data
-            if intent_data.get("intent") == "historical_analysis" and duration_days is None:
-                duration_days = 7  # Default for historical queries
-                self.logger.info(f"Historical analysis detected, defaulting to {duration_days} days")
-            elif duration_days is None:
-                duration_days = 7  # General default
-                self.logger.info(f"No timeframe parsed, defaulting to {duration_days} days")
+            # Extract from original query if needed
+            if duration_days is None:
+                query_lower = request.query.lower()
+                if "today" in query_lower:
+                    duration_days = None
+                elif "30 days" in query_lower:
+                    duration_days = 30
+                elif "7 days" in query_lower:
+                    duration_days = 7
+                elif "week" in query_lower:
+                    duration_days = 7
+                elif "month" in query_lower:
+                    duration_days = 30
             
-            self.logger.info(f"DEBUG: Final duration_days: {duration_days}")
+            # Default handling
+            if intent_data.get("intent") == "historical_analysis" and duration_days is None:
+                duration_days = 7
+            elif duration_days is None and "today" not in request.query.lower():
+                duration_days = 7
             
             price_change_data_for_analysis: Optional[Dict] = None 
-            price_change_data_for_result: Optional[PriceChangeData] = None 
+            price_change_data_for_result: Optional[PriceChangeData] = None
+            price_data_obj: Optional[PriceData] = None
 
-            # ALWAYS attempt to get historical data using Alpha Vantage
-            self.logger.info(f"DEBUG: Requesting historical price data for {ticker} over {duration_days} days using Alpha Vantage")
-            try:
-                price_change_agent_response = await self.price_change_agent.execute({
-                    "ticker": ticker, 
-                    "duration_days": duration_days
-                })
-                
-                self.logger.info(f"DEBUG: Alpha Vantage price change agent response: {price_change_agent_response}")
-                
-                if price_change_agent_response and price_change_agent_response.success and price_change_agent_response.data:
-                    self.logger.info(f"DEBUG: Alpha Vantage historical data SUCCESS: {price_change_agent_response.data}")
-                    price_change_data_for_analysis = price_change_agent_response.data
-                    try:
-                        price_change_data_for_result = PriceChangeData(**price_change_agent_response.data)
-                        self.logger.info(f"DEBUG: Created PriceChangeData object successfully from Alpha Vantage")
-                    except Exception as e:
-                        self.logger.error(f"Failed to parse Alpha Vantage historical data into schema: {e}")
-                        price_change_data_for_result = None
-                else:
-                    self.logger.error(f"Alpha Vantage historical price agent failed: success={price_change_agent_response.success if price_change_agent_response else 'None'}")
-            except Exception as e:
-                self.logger.error(f"Error executing Alpha Vantage historical price agent: {e}", exc_info=True)
+            # Get historical data if needed
+            if duration_days and duration_days > 0:
+                try:
+                    price_change_agent_response = await self.price_change_agent.execute({
+                        "ticker": ticker, 
+                        "duration_days": duration_days
+                    })
+                    
+                    if price_change_agent_response and price_change_agent_response.success and price_change_agent_response.data:
+                        price_change_data_for_analysis = price_change_agent_response.data
+                        try:
+                            price_change_data_for_result = PriceChangeData(**price_change_agent_response.data)
+                        except Exception as e:
+                            self.logger.error(f"Failed to parse historical data: {e}")
+                            price_change_data_for_result = None
+                except Exception as e:
+                    self.logger.error(f"Error executing price change agent: {e}")
 
-            # Step 3: Fetch data in parallel
+            # Fetch current data in parallel
             tasks_to_run = {
                 "price": self.price_agent.execute({"ticker": ticker}),
                 "news": self.news_agent.execute({"ticker": ticker, "days_back": 7})
             }
             
             results = await asyncio.gather(*tasks_to_run.values(), return_exceptions=True)
-            
             task_keys = list(tasks_to_run.keys())
             responses: Dict[str, Any] = {task_keys[i]: results[i] for i in range(len(task_keys))}
 
-            # Step 4: Process responses
-            price_data_obj: Optional[PriceData] = None
+            # Process responses
             news_items: List[NewsItem] = []
             price_data_dict_for_analysis: Dict = {}
             news_items_list_for_analysis: List[Dict] = []
@@ -174,8 +154,6 @@ class MainOrchestrator:
                     open_price_today=price_response.data.get("open_price_today")
                 )
                 price_data_dict_for_analysis = price_response.data
-            elif isinstance(price_response, Exception):
-                 self.logger.error(f"Price agent execution failed: {price_response}")
 
             news_response = responses.get("news")
             if news_response and not isinstance(news_response, Exception) and news_response.success and news_response.data:
@@ -183,10 +161,39 @@ class MainOrchestrator:
                     NewsItem(**item) for item in news_response.data.get("news_items", [])
                 ]
                 news_items_list_for_analysis = news_response.data.get("news_items", [])
-            elif isinstance(news_response, Exception):
-                self.logger.error(f"News agent execution failed: {news_response}")
 
-            # Step 5: Perform analysis
+            # Calculate today's change if no historical data but have current price
+            if price_data_obj and not price_change_data_for_result:
+                current_price = price_data_obj.current_price
+                previous_close = price_data_obj.previous_close
+                
+                if current_price and previous_close:
+                    today_change = current_price - previous_close
+                    today_change_percent = (today_change / previous_close) * 100 if previous_close != 0 else 0
+                    
+                    today_price_change_dict = {
+                        "period": "1 day",
+                        "open": previous_close,
+                        "close": current_price,
+                        "change": round(today_change, 2),
+                        "change_percent": round(today_change_percent, 2),
+                        "high": price_data_obj.high_price_today,
+                        "low": price_data_obj.low_price_today,
+                        "meta": {
+                            "start_date_used": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"),
+                            "end_date_used": datetime.now().strftime("%Y-%m-%d"),
+                            "data_points": 1,
+                            "data_source": "calculated_daily"
+                        }
+                    }
+                    
+                    try:
+                        price_change_data_for_result = PriceChangeData(**today_price_change_dict)
+                        price_change_data_for_analysis = today_price_change_dict
+                    except Exception as e:
+                        self.logger.error(f"Failed to create calculated PriceChangeData: {e}")
+
+            # Perform analysis
             analysis_input = {
                 "ticker": ticker,
                 "price_data": price_data_dict_for_analysis,
@@ -198,15 +205,9 @@ class MainOrchestrator:
             if price_change_data_for_analysis: 
                 analysis_input["price_change_data"] = price_change_data_for_analysis
             
-            # Debug logging
-            self.logger.error(f"DEBUG ORCHESTRATOR: request.query = '{request.query}'")
-            self.logger.error(f"DEBUG ORCHESTRATOR: analysis_input['original_query'] = '{analysis_input.get('original_query', 'NOT_FOUND')}'")
-            
-            self.logger.info(f"Input for AnalysisAgent: {analysis_input}")
             analysis_response = await self.analysis_agent.execute(analysis_input)
-            self.logger.info(f"AnalysisAgent response: Success={analysis_response.success}, Data={analysis_response.data}")
             
-            # Step 6: Build final result
+            # Build final result
             analysis_summary_text = "Analysis not available"
             key_insights_list = []
             sentiment_text = None
@@ -218,7 +219,7 @@ class MainOrchestrator:
                 sentiment_text = analysis_response.data.get("sentiment")
                 confidence_score_val = analysis_response.data.get("confidence_score")
 
-            result = AnalysisResult(
+            return AnalysisResult(
                 ticker=ticker,
                 company_name=company_name,
                 analysis_summary=analysis_summary_text,
@@ -230,12 +231,8 @@ class MainOrchestrator:
                 price_change_data=[price_change_data_for_result] if price_change_data_for_result else None
             )
             
-            self.logger.info(f"DEBUG: Final result price_change_data: {result.price_change_data}")
-            
-            return result
-            
         except Exception as e:
-            self.logger.error(f"Error processing request: {e}", exc_info=True)
+            self.logger.error(f"Error processing request: {e}")
             return AnalysisResult(
                 ticker="ERROR",
                 analysis_summary=f"An error occurred while processing your request: {str(e)}",
@@ -243,7 +240,7 @@ class MainOrchestrator:
             )
     
     async def _extract_intent(self, request: AnalysisRequest) -> Dict[str, Any]:
-        """Extract intent and basic information from the request using Gemini"""
+        """Extract intent using Gemini"""
         try:
             return await self.gemini_adapter.extract_intent_and_ticker(request.query)
         except Exception as e:
@@ -255,17 +252,12 @@ class MainOrchestrator:
                 "timeframe": "recent"
             }
     
-    async def _identify_ticker(self, request: AnalysisRequest, intent_data: Dict[str, Any]) -> Dict[str, Any]: # This returns AgentResponse
-        """Identify ticker using the ticker identification agent"""
+    async def _identify_ticker(self, request: AnalysisRequest, intent_data: Dict[str, Any]):
+        """Identify ticker using ticker identification agent"""
         input_data = {
             "query": request.query,
             "company_name": intent_data.get("company_name"),
             "ticker": intent_data.get("ticker")
         }
         
-        response = await self.ticker_agent.execute(input_data)
-        # The orchestrator expects the direct data dict from this helper in the original structure
-        # However, the agent returns AgentResponse. We should adapt to what the orchestrator expects or change the orchestrator.
-        # For minimal change to the orchestrator's direct use of `ticker_data.get("ticker")` etc.,
-        # this helper should return the .data attribute.
-        return response # The caller will access response.data
+        return await self.ticker_agent.execute(input_data)

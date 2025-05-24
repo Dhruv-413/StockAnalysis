@@ -4,7 +4,7 @@ from typing import Optional, Dict, Tuple, List, Any
 
 from .base_adapter import BaseAdapter 
 from src.config import settings
-from ..utils.cache import cached # Corrected import for cache
+from ..utils.cache import cached
 
 class AlphaVantageAdapter(BaseAdapter):
     """
@@ -69,7 +69,6 @@ class AlphaVantageAdapter(BaseAdapter):
     ) -> Optional[Dict[str, Dict[str, str]]]:
         """
         Fetches daily time series using TIME_SERIES_DAILY (free tier).
-        output_size: "compact" for last 100 data points, "full" for 20+ years.
         """
         if not self.api_key:
             self.logger.error(f"Alpha Vantage API key not available for daily series {ticker}")
@@ -105,7 +104,6 @@ class AlphaVantageAdapter(BaseAdapter):
     async def get_weekly_time_series(self, ticker: str) -> Optional[Dict[str, Dict[str, str]]]:
         """
         Fetches weekly time series using TIME_SERIES_WEEKLY (free tier).
-        Covers 20+ years of historical data.
         """
         if not self.api_key:
             self.logger.error(f"Alpha Vantage API key not available for weekly series {ticker}")
@@ -137,7 +135,6 @@ class AlphaVantageAdapter(BaseAdapter):
     async def get_monthly_time_series(self, ticker: str) -> Optional[Dict[str, Dict[str, str]]]:
         """
         Fetches monthly time series using TIME_SERIES_MONTHLY (free tier).
-        Covers 20+ years of historical data.
         """
         if not self.api_key:
             self.logger.error(f"Alpha Vantage API key not available for monthly series {ticker}")
@@ -170,7 +167,6 @@ class AlphaVantageAdapter(BaseAdapter):
     ) -> Optional[Dict[str, Any]]:
         """
         Enhanced method to get historical data based on timeframe.
-        Uses appropriate endpoint (daily/weekly/monthly) based on duration.
         """
         self.logger.info(f"Getting optimized historical data for {ticker} over {days_ago} days")
         
@@ -178,12 +174,11 @@ class AlphaVantageAdapter(BaseAdapter):
             return None
 
         try:
-            # Choose appropriate endpoint based on timeframe - use full data for 30+ days
-            if days_ago <= 30:  # Up to 30 days - use daily compact or full
+            if days_ago <= 30:
                 if days_ago <= 7:
                     time_series = await self.get_daily_time_series(ticker, "compact")
                 else:
-                    time_series = await self.get_daily_time_series(ticker, "full")  # Use full for longer periods
+                    time_series = await self.get_daily_time_series(ticker, "full")
                 series_key = "4. close"
                 high_key = "2. high"
                 low_key = "3. low"
@@ -197,7 +192,7 @@ class AlphaVantageAdapter(BaseAdapter):
                 series_key = "4. close"
                 high_key = "2. high"
                 low_key = "3. low"
-                days_ago = days_ago // 7  # Convert to weeks
+                days_ago = days_ago // 7 
             else:  # More than 2 years - use monthly
                 time_series = await self.get_monthly_time_series(ticker)
                 series_key = "4. close"
@@ -214,7 +209,7 @@ class AlphaVantageAdapter(BaseAdapter):
                 self.logger.warning(f"Insufficient data points for {ticker}")
                 return None
 
-            # Get most recent price (end price)
+            # Get most recent price
             recent_date_str = sorted_dates[0]
             recent_price_str = time_series[recent_date_str].get(series_key)
             recent_price = float(recent_price_str) if recent_price_str else None
@@ -238,14 +233,13 @@ class AlphaVantageAdapter(BaseAdapter):
                         if diff < min_diff_days:
                             min_diff_days = diff
                             closest_past_date_str = date_str
-                        if diff <= 3:  # Good enough match (within 3 days)
+                        if diff <= 3: 
                             break
                 except ValueError:
                     continue
             
             # If no good past date found, use the oldest available
             if not closest_past_date_str and len(sorted_dates) > days_ago // 7:
-                # Try to get approximately the right timeframe
                 target_index = min(days_ago, len(sorted_dates) - 1)
                 closest_past_date_str = sorted_dates[target_index]
 
@@ -260,15 +254,12 @@ class AlphaVantageAdapter(BaseAdapter):
                 self.logger.warning(f"No past price data for {ticker}")
                 return None
 
-            # Calculate change
             price_change = recent_price - past_price
             price_change_percent = (price_change / past_price) * 100 if past_price != 0 else 0
 
-            # Get period high and low from the data range
             period_highs = []
             period_lows = []
             
-            # Find the index range for our period
             start_idx = sorted_dates.index(closest_past_date_str)
             end_idx = sorted_dates.index(recent_date_str)
             
@@ -364,13 +355,10 @@ class AlphaVantageAdapter(BaseAdapter):
         """
         self.logger.info(f"Getting comprehensive analysis data for {ticker} over {days_ago} days")
         
-        # Get current quote
         current_quote = await self.get_global_quote(ticker)
         
-        # Get historical price change
         price_change = await self.get_historical_data_optimized(ticker, days_ago)
         
-        # Get additional context data based on timeframe
         additional_data = {}
         
         if days_ago <= 7:  # Short term - get intraday data

@@ -1,14 +1,15 @@
-"""Multi-agent system components for stock analysis"""
 from .base_agent import BaseAgent
 from .ticker_identification_agent import TickerIdentificationAgent
-from .price_agent import PriceAgent
-from .news_agent import NewsAgent
-from .analysis_agent import AnalysisAgent
+from .ticker_price_agent import TickerPriceAgent
+from .ticker_news_agent import TickerNewsAgent
+from .ticker_analysis_agent import TickerAnalysisAgent
+from .ticker_price_change_agent import TickerPriceChangeAgent
 
 __all__ = [
     "BaseAgent",
     "TickerIdentificationAgent",
-    "PriceAgent",
-    "NewsAgent",
-    "AnalysisAgent"
+    "TickerPriceAgent",
+    "TickerNewsAgent",
+    "TickerAnalysisAgent",
+    "TickerPriceChangeAgent"
 ]

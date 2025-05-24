@@ -1,12 +1,12 @@
 from typing import Dict, Any, Optional
 from .base_agent import BaseAgent
-from src.adapters.alpha_vantage_adapter import AlphaVantageAdapter  # Changed back to Alpha Vantage
+from src.adapters.alpha_vantage_adapter import AlphaVantageAdapter
 from src.models.schemas import PriceChangeData
 
 class TickerPriceChangeAgent(BaseAgent):
     def __init__(self):
         super().__init__("TickerPriceChangeAgent")
-        self.alpha_vantage_adapter = AlphaVantageAdapter()  # Use Alpha Vantage for historical data
+        self.alpha_vantage_adapter = AlphaVantageAdapter()
 
     async def _execute_logic(self, input_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """

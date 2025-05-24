@@ -2,9 +2,9 @@ from typing import Dict, Any
 from .base_agent import BaseAgent
 from src.adapters.finnhub_adapter import FinnhubAdapter
 
-class TickerNewsAgent(BaseAgent): # Renamed class
+class TickerNewsAgent(BaseAgent):
     def __init__(self):
-        super().__init__("TickerNewsAgent") # Renamed agent name
+        super().__init__("TickerNewsAgent")
         self.finnhub = FinnhubAdapter()
     
     async def _execute_logic(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -19,6 +19,6 @@ class TickerNewsAgent(BaseAgent): # Renamed class
         return {
             "ticker": ticker,
             "news_count": len(news_items),
-            "news_items": news_items, # This is already a list of dicts
+            "news_items": news_items,
             "timeframe_days": days_back
         }

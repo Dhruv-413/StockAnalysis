@@ -16,10 +16,8 @@ class GeminiAdapter:
     async def extract_intent_and_ticker(self, query: str) -> Dict[str, Any]:
         """Extract intent and ticker from natural language query"""
         try:
-            self.logger.info(f"Gemini extracting intent from query: '{query}'")
-            
-            # Simple pre-check for very common company names
-            common_companies_map = {
+            # Common company mappings
+            common_companies = {
                 "apple": {"company_name": "Apple Inc.", "ticker": "AAPL"},
                 "microsoft": {"company_name": "Microsoft Corporation", "ticker": "MSFT"},
                 "google": {"company_name": "Alphabet Inc.", "ticker": "GOOGL"},
@@ -29,100 +27,72 @@ class GeminiAdapter:
                 "nvidia": {"company_name": "NVIDIA Corporation", "ticker": "NVDA"},
                 "meta": {"company_name": "Meta Platforms Inc.", "ticker": "META"},
                 "facebook": {"company_name": "Meta Platforms Inc.", "ticker": "META"},
-                "nike": {"company_name": "NIKE, Inc.", "ticker": "NKE"},
             }
             
             query_lower = query.lower()
-            for name, details in common_companies_map.items():
+            for name, details in common_companies.items():
                 if name in query_lower:
-                    self.logger.info(f"Common company '{name}' found in query. Using predefined details and extracting rest with Gemini.")
-                    
-                    prompt_for_common = f"""
-                    Given the query: "{query}"
-                    And knowing the primary company of interest is "{details['company_name']}" (ticker: {details['ticker']}).
+                    prompt = f"""
+                    Query: "{query}"
+                    Company: "{details['company_name']}" (ticker: {details['ticker']})
 
-                    Extract the following:
-                    1. intent: What the user wants. Be very specific:
-                       - "historical_analysis" if asking about performance over time, changes over days/weeks/months
-                       - "earnings_check" if asking about profit, earnings, revenue, financial performance
-                       - "price_check" if asking about current price, stock price today
-                       - "news_summary" if asking about recent news or events
-                       - "general_query" for other requests
-                    2. timeframe: Time period mentioned (e.g., "7 days", "last 7 days", "past week", "last month", "today").
+                    Extract:
+                    1. intent: "historical_analysis", "price_check", "news_summary", or "general_query"
+                    2. timeframe: Time period mentioned (e.g., "7 days", "today", "last month")
 
-                    Examples:
-                    - "How has Tesla changed in the last 7 days?" -> intent: "historical_analysis", timeframe: "7 days"
-                    - "Tesla stock price" -> intent: "price_check", timeframe: "today"
-                    - "Was Tesla profitable?" -> intent: "earnings_check", timeframe: "recent"
-
-                    Return a JSON response with "intent" and "timeframe".
+                    Return JSON: {{"intent": "", "timeframe": ""}}
                     """
-                    response_common = await self.model.generate_content_async(prompt_for_common)
                     
-                    # Fix JSON parsing - ensure json module is available
+                    response = await self.model.generate_content_async(prompt)
+                    
                     try:
-                        raw_text = response_common.text.strip()
-                        self.logger.info(f"Raw Gemini response: {raw_text}")
+                        raw_text = response.text.strip()
                         
-                        # Extract JSON from markdown if present
+                        # Extract JSON from markdown
                         if "```json" in raw_text:
                             json_match = re.search(r"```json\s*(\{.*?\})\s*```", raw_text, re.DOTALL)
                             if json_match:
                                 raw_text = json_match.group(1)
                         
-                        import json as json_module
-                        parsed_common_response = json_module.loads(raw_text)
+                        parsed_response = json.loads(raw_text)
                         return {
                             "company_name": details["company_name"],
                             "ticker": details["ticker"],
-                            "intent": parsed_common_response.get("intent", "general_query"),
-                            "timeframe": parsed_common_response.get("timeframe", "recent")
+                            "intent": parsed_response.get("intent", "general_query"),
+                            "timeframe": parsed_response.get("timeframe", "recent")
                         }
-                    except Exception as e:
-                        self.logger.error(f"Failed to parse Gemini response: {e}. Raw: {raw_text}")
-                        # Extract timeframe manually if JSON parsing fails
-                        extracted_timeframe = "recent"
-                        if "today" in query.lower():
-                            extracted_timeframe = "today"
-                        elif "30 days" in query.lower():
-                            extracted_timeframe = "30 days"
-                        elif "7 days" in query.lower():
-                            extracted_timeframe = "7 days"
+                    except Exception:
+                        # Fallback extraction
+                        timeframe = "recent"
+                        if "today" in query_lower:
+                            timeframe = "today"
+                        elif "30 days" in query_lower:
+                            timeframe = "30 days"
+                        elif "7 days" in query_lower:
+                            timeframe = "7 days"
                         
                         return {
                             "company_name": details["company_name"],
                             "ticker": details["ticker"],
                             "intent": "general_query",
-                            "timeframe": extracted_timeframe
+                            "timeframe": timeframe
                         }
 
-            # If no common company name was pre-identified, proceed with the general Gemini extraction
+            # General extraction for other companies
             prompt = f"""
-            Analyze the following stock-related query: "{query}"
+            Analyze query: "{query}"
 
-            Identify:
-            1. "company_name": The full official name of the company (e.g., "Apple Inc."). If no specific company is clear, set to null.
-            2. "ticker": The stock ticker symbol (e.g., "AAPL"). If no ticker is clear, set to null.
-            3. "intent": The user's primary goal. Be very specific:
-               - "earnings_check": If asking about profit, earnings, revenue, financial performance, quarterly results
-               - "price_check": If asking about current price, stock price today, market value
-               - "historical_analysis": If asking about performance over a time period (e.g., "last 7 days", "this week")
-               - "news_summary": If asking about recent news, events, or developments
-               - "company_profile": If asking about general company information
-               - "general_query": For other requests
-            4. "timeframe": Any time period mentioned (e.g., "today", "last 7 days", "Q3 2023"). If not specified, use "recent".
+            Extract:
+            1. "company_name": Full company name or null
+            2. "ticker": Stock ticker symbol or null
+            3. "intent": "earnings_check", "price_check", "historical_analysis", "news_summary", "company_profile", or "general_query"
+            4. "timeframe": Time period mentioned or "recent"
 
-            Examples:
-            - "Was Apple profitable this quarter?" -> intent: "earnings_check", timeframe: "this quarter"
-            - "Tesla stock price today" -> intent: "price_check", timeframe: "today"
-            - "How has Microsoft performed this month?" -> intent: "historical_analysis", timeframe: "this month"
-
-            Return a JSON object with these fields.
+            Return JSON object.
             """
             
             response = await self.model.generate_content_async(prompt)
             
-            import json
             try:
                 return json.loads(response.text)
             except json.JSONDecodeError:
@@ -134,7 +104,7 @@ class GeminiAdapter:
                 }
                 
         except Exception as e:
-            self.logger.error(f"Error extracting intent from query: {e}")
+            self.logger.error(f"Error extracting intent: {e}")
             return {
                 "company_name": None,
                 "ticker": None,
@@ -152,15 +122,10 @@ class GeminiAdapter:
         original_query: str = "",
         price_change_data: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Analyze stock movement using price data, news, intent, original query and optional price change data"""
+        """Analyze stock movement using AI"""
         try:
-            # Log what we're receiving
-            self.logger.info(f"Analyzing {ticker} for query: '{original_query}'")
-            self.logger.info(f"Intent: {intent}, Has historical data: {bool(price_change_data)}")
-            
-            # Validate data consistency
+            # Validate ticker consistency
             if ticker and price_data.get('ticker') and ticker != price_data.get('ticker'):
-                self.logger.error(f"CRITICAL: Ticker mismatch! Requested: {ticker}, Price data: {price_data.get('ticker')}")
                 return {
                     "analysis_summary": f"Data error: Analysis requested for {ticker} but received data for {price_data.get('ticker')}",
                     "key_factors": ["Data consistency error"],
@@ -171,104 +136,62 @@ class GeminiAdapter:
             
             query_lower = original_query.lower()
             
-            # Check for "today" queries first - these should use current price data, not historical
+            # Build appropriate prompt based on query type
             if "today" in query_lower:
                 current_price = price_data.get('current_price', 'N/A')
-                prev_close = price_data.get('previous_close', 'N/A')
-                change = price_data.get('change', 0)
                 change_percent = price_data.get('change_percent', 0)
                 high_today = price_data.get('high_price_today', 'N/A')
                 low_today = price_data.get('low_price_today', 'N/A')
                 
                 prompt = f"""
-                User asked: "{original_query}"
+                Query: "{original_query}"
                 
-                They want to know how {ticker} has performed TODAY.
+                Today's {ticker} performance:
+                - Current: ${current_price}
+                - Change: {change_percent}%
+                - Range: ${low_today} - ${high_today}
                 
-                Today's performance data:
-                - Current price: ${current_price}
-                - Previous close: ${prev_close}
-                - Today's change: ${change} ({change_percent}%)
-                - Today's high: ${high_today}
-                - Today's low: ${low_today}
-                - Trading range: ${low_today} - ${high_today}
-                
-                Recent news context suggests tariff concerns and competitive pressures.
-                
-                JSON response:
-                {{
-                    "analysis_summary": "Today, {ticker} is {'down' if change_percent < 0 else 'up'} {abs(change_percent)}% at ${current_price}, compared to yesterday's close of ${prev_close}. The stock has traded between ${low_today} and ${high_today} today.",
-                    "key_factors": ["Today's performance: {change_percent}%", "Trading range: ${low_today}-${high_today}", "Previous close: ${prev_close}"],
-                    "sentiment": "{'negative' if change_percent < 0 else 'positive'}",
-                    "key_insights": ["Today's {ticker} performance: {'decline' if change_percent < 0 else 'gain'} of {abs(change_percent)}%", "Intraday trading range shows {'volatility' if abs(float(high_today) - float(low_today)) > 5 else 'stability'}"],
-                    "confidence_score": 0.95
-                }}
+                Return JSON with analysis_summary, key_factors, sentiment, key_insights, confidence_score.
                 """
                 
-            # Check what timeframe user actually requested for historical queries
             elif price_change_data and (
-                ("how" in query_lower and any(word in query_lower for word in ["changed", "performed", "done"])) or
+                ("how" in query_lower and any(word in query_lower for word in ["changed", "performed"])) or
                 ("last" in query_lower and any(word in query_lower for word in ["days", "week", "month"])) or
                 intent == "historical_analysis"
             ):
-                # We have historical data - use it!
                 change_percent = price_change_data.get('change_percent', 0)
-                actual_period = price_change_data.get('period', '7 days')
+                period = price_change_data.get('period', '7 days')
                 start_price = price_change_data.get('open', 'N/A')
                 end_price = price_change_data.get('close', 'N/A')
-                high_price = price_change_data.get('high', 'N/A')
-                low_price = price_change_data.get('low', 'N/A')
-                start_date = price_change_data.get('meta', {}).get('start_date_used', 'N/A')
-                end_date = price_change_data.get('meta', {}).get('end_date_used', 'N/A')
-                
-                self.logger.info(f"Using historical data: {change_percent}% change over {actual_period}")
                 
                 prompt = f"""
-                User asked: "{original_query}"
+                Query: "{original_query}"
                 
-                Historical performance for {ticker}:
-                - Period: {actual_period} (from {start_date} to {end_date})
-                - Starting price: ${start_price}
-                - Ending price: ${end_price}
-                - Total change: {change_percent}%
-                - Period high: ${high_price}
-                - Period low: ${low_price}
+                {ticker} {period} performance:
+                - Start: ${start_price}
+                - End: ${end_price}
+                - Change: {change_percent}%
                 
-                Recent news context shows concerns about tariff threats and competitive pressures.
-                
-                Provide analysis directly addressing the user's question about the {actual_period} performance.
-                
-                JSON response:
-                {{
-                    "analysis_summary": "Over the past {actual_period}, {ticker} declined {abs(change_percent)}% from ${start_price} to ${end_price}. The stock hit a high of ${high_price} and low of ${low_price} during this period. Recent news shows tariff threats from Trump administration and competitive concerns from OpenAI affecting sentiment.",
-                    "key_factors": ["{actual_period} decline of {change_percent}%", "Tariff threat concerns", "OpenAI competitive pressure", "Trading range ${low_price}-${high_price}"],
-                    "sentiment": "negative",
-                    "key_insights": ["{ticker} underperformed over {actual_period}", "Multiple headwinds including tariffs and AI competition", "Significant price decline from ${start_price} to ${end_price}"],
-                    "confidence_score": 0.9
-                }}
+                Return JSON with analysis_summary, key_factors, sentiment, key_insights, confidence_score.
                 """
             
             else:
-                # Generic fallback using current data
                 current_price = price_data.get('current_price', 'N/A')
                 change_percent = price_data.get('change_percent', 0)
                 
                 prompt = f"""
-                User asked: "{original_query}"
+                Query: "{original_query}"
                 
-                Current {ticker} status:
+                {ticker} status:
                 - Price: ${current_price} ({change_percent}% change)
                 
-                JSON response with analysis_summary, key_factors, sentiment, key_insights, confidence_score.
+                Return JSON with analysis_summary, key_factors, sentiment, key_insights, confidence_score.
                 """
             
-            self.logger.info(f"Sending targeted analysis for: '{original_query}'")
             response = await self.model.generate_content_async(prompt)
-            
             raw_text = response.text.strip()
-            self.logger.info(f"Gemini raw response: {raw_text[:200]}...")
             
-            # Enhanced JSON parsing
+            # Parse JSON response
             json_str = None
             if raw_text.startswith('{') and raw_text.endswith('}'):
                 json_str = raw_text
@@ -280,48 +203,52 @@ class GeminiAdapter:
             if json_str:
                 try:
                     parsed = json.loads(json_str)
+                    
+                    # Ensure confidence_score is a number
+                    confidence_score = parsed.get("confidence_score", 0.7)
+                    if isinstance(confidence_score, str):
+                        try:
+                            if "/" in confidence_score:
+                                parts = confidence_score.split("/")
+                                confidence_score = float(parts[0]) / float(parts[1])
+                            else:
+                                confidence_score = float(confidence_score)
+                        except:
+                            confidence_score = 0.7
+                    
+                    if confidence_score > 1:
+                        confidence_score = confidence_score / 100
+                    
                     return {
                         "analysis_summary": parsed.get("analysis_summary", f"Analysis for {ticker}"),
                         "key_factors": parsed.get("key_factors", []),
                         "sentiment": parsed.get("sentiment", "neutral"),
                         "key_insights": parsed.get("key_insights", []),
-                        "confidence_score": parsed.get("confidence_score", 0.5)
+                        "confidence_score": confidence_score
                     }
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"JSON parse error: {e}")
+                except json.JSONDecodeError:
+                    pass
             
-            # Manual fallback using historical data if available
+            # Fallback response
             if price_change_data:
                 change_percent = price_change_data.get('change_percent', 0)
-                actual_period = price_change_data.get('period', '7 days')
-                start_price = price_change_data.get('open', 'N/A')
-                end_price = price_change_data.get('close', 'N/A')
+                period = price_change_data.get('period', '7 days')
                 
                 return {
-                    "analysis_summary": f"Over the {actual_period}, {ticker} {'declined' if change_percent < 0 else 'gained'} {abs(change_percent)}% from ${start_price} to ${end_price}.",
-                    "key_factors": [f"{actual_period} performance: {change_percent}%", f"Price movement: ${start_price} to ${end_price}"],
+                    "analysis_summary": f"Over {period}, {ticker} {'declined' if change_percent < 0 else 'gained'} {abs(change_percent)}%.",
+                    "key_factors": [f"{period} performance: {change_percent}%"],
                     "sentiment": "negative" if change_percent < 0 else "positive",
-                    "key_insights": [f"{ticker} {'underperformed' if change_percent < 0 else 'outperformed'} over the {actual_period}"],
+                    "key_insights": [f"{ticker} {'underperformed' if change_percent < 0 else 'outperformed'} over {period}"],
                     "confidence_score": 0.8
                 }
             
-            # Fallback response specific to the actual ticker
-            if "happening" in query_lower:
-                return {
-                    "analysis_summary": f"Recent activity for {ticker}: Stock is at ${price_data.get('current_price', 'N/A')} with a {price_data.get('change_percent', 0)}% change today. Recent news shows various developments affecting the company.",
-                    "key_factors": [f"{ticker} price movement", "Recent news developments"],
-                    "sentiment": "positive" if price_data.get('change_percent', 0) > 0 else "negative" if price_data.get('change_percent', 0) < 0 else "neutral",
-                    "key_insights": [f"{ticker} is showing {'positive' if price_data.get('change_percent', 0) > 0 else 'negative' if price_data.get('change_percent', 0) < 0 else 'neutral'} movement"],
-                    "confidence_score": 0.7
-                }
-            else:
-                return {
-                    "analysis_summary": f"{ticker} is trading at ${price_data.get('current_price', 'N/A')} with a {price_data.get('change_percent', 0)}% change today.",
-                    "key_factors": ["Daily price movement"],
-                    "sentiment": "positive" if price_data.get('change_percent', 0) > 0 else "negative" if price_data.get('change_percent', 0) < 0 else "neutral",
-                    "key_insights": [f"{ticker} daily performance"],
-                    "confidence_score": 0.6
-                }
+            return {
+                "analysis_summary": f"{ticker} is trading at ${price_data.get('current_price', 'N/A')} with a {price_data.get('change_percent', 0)}% change.",
+                "key_factors": ["Daily price movement"],
+                "sentiment": "positive" if price_data.get('change_percent', 0) > 0 else "negative" if price_data.get('change_percent', 0) < 0 else "neutral",
+                "key_insights": [f"{ticker} daily performance"],
+                "confidence_score": 0.6
+            }
                 
         except Exception as e:
             self.logger.error(f"Error analyzing {ticker}: {e}")
