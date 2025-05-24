@@ -429,3 +429,126 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **FastAPI** for the robust web framework
 
 ---
+
+## Google ADK Integration
+
+This project includes integration with Google's Agent Development Kit (ADK), allowing you to visualize and interact with the stock analysis agents through a browser-based interface.
+
+### Prerequisites
+
+1. Install the Google ADK package:
+   ```bash
+   pip install google-adk
+   ```
+
+2. Install Node.js (v16+), npm, and Angular CLI:
+   ```bash
+   npm install -g @angular/cli
+   ```
+
+3. Clone and install the ADK Web frontend:
+   ```bash
+   git clone https://github.com/google/adk-web.git
+   cd adk-web
+   npm install
+   ```
+
+### Running the ADK Web Interface
+
+1. Start the ADK backend API server from the project root directory:
+   ```bash
+   adk api_server --allow_origins=http://localhost:4200 --host=0.0.0.0
+   ```
+
+2. Start the ADK Web frontend:
+   ```bash
+   cd path/to/adk-web
+   npm run serve --backend=http://localhost:8000
+   ```
+
+3. Visit http://localhost:4200 in your browser to access the ADK Web interface.
+
+### Agent Architecture
+
+The stock analysis system in ADK is organized as a multi-agent workflow:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     StockAnalysisAgent                          │
+│                                                                 │
+│  ┌────────────────┐ ┌───────────────────────────────────────┐  │
+│  │IdentifyTickerA.│→│         ParallelFetchAgent            │  │
+│  └────────────────┘ │  ┌─────────┐ ┌─────────┐ ┌─────────┐  │  │
+│                     │  │ Price   │ │ News    │ │ Price   │  │  │
+│                     │  │ Agent   │ │ Agent   │ │ Change  │  │→ │→┌───────────┐
+│                     │  └─────────┘ └─────────┘ └─────────┘  │  │ │Analysis   │
+│                     └───────────────────────────────────────┘  │ │Agent      │
+└─────────────────────────────────────────────────────────────────┘ └───────────┘
+```
+
+1. **TickerIdentificationAgent**: Identifies stock tickers from natural language queries
+2. **ParallelFetchAgent**: Fetches price, news, and historical data in parallel:
+   - **TickerPriceAgent**: Gets current price data
+   - **TickerNewsAgent**: Gets recent news articles
+   - **TickerPriceChangeAgent**: Calculates historical price changes
+3. **TickerAnalysisAgent**: Analyzes the collected data to provide insights
+
+### Example Queries in ADK Web
+
+In the ADK Web interface, you can try the following sample queries:
+
+- "How is Apple stock doing today?"
+- "Why did Tesla stock drop recently?"
+- "How has Microsoft performed in the last 7 days?"
+- "What's happening with Amazon stock?"
+
+### Running a Quick Demo
+
+For a quick demonstration without the web interface, you can use the direct demo script which bypasses the ADK framework:
+
+```bash
+python direct_demo.py
+```
+
+Or if you want to use the ADK integration (may require additional setup):
+
+```bash
+python adk_demo.py
+```
+
+### Extending the System with New Agents
+
+To add a new agent to the ADK workflow:
+
+1. Create a new Python file in the `adk_agents` directory
+2. Follow the pattern used in existing agents:
+   - Wrap your logic in an async function
+   - Create a FunctionTool from your function
+   - Create a CustomAgent from your tool
+3. Import and integrate your agent in `adk_agents/main.py`
+4. Update the workflow orchestration as needed
+
+### ADK Configuration
+
+ADK integration uses a ToolAgent-based approach that doesn't require direct LLM integration through ADK's built-in capabilities. Instead, the agent orchestrates existing tools that already use our Gemini integration.
+
+If you wanted to use ADK's LLM capabilities directly, you would need to:
+
+1. Create an `adk.yaml` configuration file with model settings:
+   ```yaml
+   models:
+     - name: gemini
+       type: GoogleGenerativeAI
+       config:
+         api_key: ${GOOGLE_API_KEY}
+         model_name: ${GEMINI_MODEL}
+
+   defaults:
+     model: gemini
+   ```
+
+2. Replace `ToolAgent` with `LlmAgent` and specify a model:
+   ```python
+   from google.adk.agents import LlmAgent
+   agent = LlmAgent(name="MyAgent", model="gemini")
+   ```

@@ -14,3 +14,5 @@ aiofiles
 cachetools
 tenacity
 pydantic_settings
+google-adk
+colorama
