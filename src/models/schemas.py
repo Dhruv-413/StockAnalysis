@@ -1,7 +1,14 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
+import json
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return json.JSONEncoder.default(self, obj)
 
 class QueryType(str, Enum):
     NATURAL_LANGUAGE = "natural_language"
@@ -20,6 +27,11 @@ class NewsItem(BaseModel):
     published_at: datetime
     sentiment: Optional[str] = None
     url: Optional[str] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda dt: dt.isoformat()
+        }
 
 class PriceData(BaseModel):
     ticker: str

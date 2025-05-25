@@ -17,33 +17,49 @@ A production-ready, AI-powered stock analysis platform built with FastAPI and Go
 
 ## 🏗️ System Architecture
 
+**A. FastApi**
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      FastAPI Application                    │
 ├─────────────────────────────────────────────────────────────┤
-│                    Main Orchestrator                       │
+│                    Main Orchestrator                        │
 ├─────────────────────────────────────────────────────────────┤
-│                    Agent Layer                             │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐ │
-│  │ Ticker ID Agent │ │ Price Agent     │ │ News Agent   │ │
-│  └─────────────────┘ └─────────────────┘ └──────────────┘ │
-│  ┌─────────────────┐ ┌─────────────────┐                  │
-│  │Price Change Agt │ │ Analysis Agent  │                  │
-│  └─────────────────┘ └─────────────────┘                  │
+│                    Agent Layer                              │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐   │
+│  │ Ticker ID Agent │ │ Price Agent     │ │ News Agent   │   │
+│  └─────────────────┘ └─────────────────┘ └──────────────┘   │
+│  ┌─────────────────┐ ┌─────────────────┐                    │
+│  │Price Change Agt │ │ Analysis Agent  │                    │
+│  └─────────────────┘ └─────────────────┘                    │
 ├─────────────────────────────────────────────────────────────┤
-│                   Adapter Layer                            │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐ │
-│  │ Finnhub Adapter │ │Alpha Vantage Adp│ │ Gemini Adp   │ │
-│  └─────────────────┘ └─────────────────┘ └──────────────┘ │
-│  ┌─────────────────┐                                      │
-│  │TwelveData Adp   │                                      │
-│  └─────────────────┘                                      │
+│                   Adapter Layer                             │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌──────────────┐   │
+│  │ Finnhub Adapter │ │Alpha Vantage Adp│ │ Gemini Adp   │   │
+│  └─────────────────┘ └─────────────────┘ └──────────────┘   │
+│  ┌─────────────────┐                                        │
+│  │TwelveData Adp   │                                        │
+│  └─────────────────┘                                        │
 ├─────────────────────────────────────────────────────────────┤
-│                   External APIs                            │
-│    Finnhub API    Alpha Vantage API    Google Gemini      │
+│                   External APIs                             │
+│    Finnhub API    Alpha Vantage API    Google Gemini        │  
 └─────────────────────────────────────────────────────────────┘
 ```
 
+**B. Agent Architecture in ADK**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     StockAnalysisAgent                          │
+│                                                                 │
+│  ┌────────────────┐ ┌───────────────────────────────────────┐   │
+│  │IdentifyTickerA.│→│         ParallelFetchAgent            │   │
+│  └────────────────┘ │  ┌─────────┐ ┌─────────┐ ┌─────────┐  │   │
+│                     │  │ Price   │ │ News    │ │ Price   │  │   │
+│                     │  │ Agent   │ │ Agent   │ │ Change  │  │→  │→┌───────────┐
+│                     │  └─────────┘ └─────────┘ └─────────┘  │   │ │Analysis   │
+│                     └───────────────────────────────────────┘   │ │Agent      │
+└─────────────────────────────────────────────────────────────────┘ └───────────┘
+```
 ### Core Components
 
 **Agents:**
@@ -65,51 +81,81 @@ A production-ready, AI-powered stock analysis platform built with FastAPI and Go
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - pip package manager
-- API keys for external services
+- Git (for cloning the repository)
+- Node.js v16+ and npm (for ADK Web interface, optional)
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Dhruv-413/StockAnalysis.git
 cd StockAnalysis
 ```
 
-### 2. Create Virtual Environment (Recommended)
+### 2. Create Virtual Environment (Required)
 
 ```bash
+# On Windows
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+venv\Scripts\activate
+
+# On macOS/Linux
+python -m venv venv
+source venv/bin/activate
 ```
+
+Verify your virtual environment is active by checking for `(venv)` prefix in your terminal.
 
 ### 3. Install Dependencies
 
 ```bash
+# Install core dependencies
 pip install -r requirements.txt
 ```
 
-### 4. Environment Configuration
+### 4. Obtain API Keys (Required)
 
-Create a `.env` file in the project root:
+Before running the application, you must obtain API keys from the following services:
 
-```bash
-# Copy example file if available
-cp .env.example .env
-```
+1. **Google Gemini API** (Required)
+   - Visit [Google AI Studio](https://makersuite.google.com/)
+   - Create an account or sign in
+   - Generate an API key from the API keys section
 
-Configure your `.env` file with the following variables:
+2. **Finnhub API** (Required)
+   - Visit [Finnhub.io](https://finnhub.io/)
+   - Register for a free account
+   - Copy your API key from the dashboard
+
+3. **Alpha Vantage API** (Required)
+   - Visit [Alpha Vantage](https://www.alphavantage.co/support/#api-key)
+   - Get a free API key by completing the form
+   - Copy your API key from the email or dashboard
+
+4. **Twelve Data API**
+   - Visit [Twelve Data](https://twelvedata.com/)
+   - Register for a free account
+   - Copy your API key from the dashboard
+
+5. **Marketaux API**
+   - Visit [Marketaux](https://marketaux.com/)  
+   - Register for a free account  
+   - Copy your API key from the dashboard  
+
+### 5. Environment Configuration (Required)
+
+Create a `.env` file in the project root with the following content:
 
 ```env
-# Required API Keys
+# Required API Keys (Replace with your actual keys)
 GOOGLE_API_KEY=your_google_gemini_api_key_here
 FINNHUB_API_KEY=your_finnhub_api_key_here
 ALPHA_VANTAGE_API_KEY=your_alpha_vantage_api_key_here
-
-# Optional API Keys
 TWELVE_DATA_API_KEY=your_twelve_data_api_key_here
+MARKETAUX_API_KEY=your_marketaux_api_key_here
 
-# Application Settings
+# Application Settings (Adjust as needed)
 ENVIRONMENT=development
 LOG_LEVEL=INFO
 CACHE_TTL=3600
@@ -117,16 +163,87 @@ RATE_LIMIT_REQUESTS=100
 RATE_LIMIT_WINDOW=60
 ```
 
-### 5. Run the Application
+**Important**: Without proper API keys, the application will not function correctly.
+
+### 6. Run the Application
+
+There are two ways to run the application:
+
+#### A. Standard FastAPI Server)
 
 ```bash
+# Make sure your virtual environment is activated
 python main.py
 ```
 
-The API will be available at:
-- **Main API**: [http://localhost:8000](http://localhost:8000)
-- **Interactive Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
-- **ReDoc Documentation**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+This will start the REST API server on [http://localhost:8001](http://localhost:8001).
+
+#### B. Google ADK Integration
+
+```bash
+# First, ensure the ADK module is installed
+pip install google-adk
+
+#Second, clone adk-web repository
+git clone https://github.com/google/adk-web.git
+cd adk-web
+npm install
+
+#Run the ADK-Web server
+npm run serve --backend=http://localhost:8000
+
+# Run the ADK server
+adk api_server --allow_origins=http://localhost:4200 --host=0.0.0.0
+```
+
+The ADK server will run on [http://localhost:8000](http://localhost:8000).\
+Visit http://localhost:4200 in your browser to access the ADK Web interface.
+
+---
+
+## 🔧 Project Structure
+
+```
+StockAnalysis/
+├── src/                       # Source code
+│   ├── agents/                # Multi-agent system
+│   │   ├── base_agent.py      # Base agent class
+│   │   ├── ticker_identification_agent.py
+│   │   ├── ticker_price_agent.py
+│   │   ├── ticker_news_agent.py
+│   │   ├── ticker_price_change_agent.py
+│   │   └── ticker_analysis_agent.py
+│   ├── adapters/              # External API integrations
+│   │   ├── base_adapter.py
+│   │   ├── finnhub_adapter.py
+│   │   ├── alpha_vantage_adapter.py
+│   │   ├── gemini_adapter.py
+│   │   └── twelve_data_adapter.py
+│   ├── models/                # Data models and schemas
+│   │   └── schemas.py
+│   ├── orchestrator/          # Request orchestration
+│   │   └── main_orchestrator.py
+│   ├── presentation/          # API layer
+│   │   └── routes.py
+│   ├── utils/                 # Utilities
+│   │   ├── logger.py
+│   │   ├── cache.py
+│   │   └── rate_limiter.py
+│   └── config.py              # Configuration settings
+├── adk_agents/                # Google ADK integration
+│   ├── agent.py               # Root agent definition
+│   ├── identify_ticker.py     # Ticker identification
+│   ├── ticker_price.py        # Price data retrieval
+│   ├── ticker_news.py         # News retrieval
+│   ├── ticker_price_change.py # Historical data analysis
+│   ├── ticker_analysis.py     # AI analysis
+│   └── main.py                # Agent workflow definitions
+├── main.py                    # FastAPI application entry point
+├── adk_main.py                # Google ADK entry point
+├── requirements.txt           # Dependencies
+├── .env                       # Environment variables
+└── README.md                  # Documentation
+```
 
 ---
 
@@ -134,39 +251,71 @@ The API will be available at:
 
 ### Required Services
 
-| Service | Purpose | Free Tier | Get API Key |
-|---------|---------|-----------|-------------|
-| **Google Gemini** | AI Analysis & Intent Extraction | Yes | [Google AI Studio](https://makersuite.google.com/) |
-| **Finnhub** | Real-time prices, news, profiles | Yes (60 calls/min) | [Finnhub.io](https://finnhub.io/) |
-| **Alpha Vantage** | Historical data, time series | Yes (5 calls/min) | [Alpha Vantage](https://www.alphavantage.co/) |
+| Service | Purpose | Free Tier Limits | Get API Key |
+|---------|---------|------------------|-------------|
+| **Google Gemini** | AI Analysis & Intent Extraction | 60 queries/minute | [Google AI Studio](https://makersuite.google.com/) |
+| **Finnhub** | Real-time prices, news, profiles | 60 calls/minute | [Finnhub.io](https://finnhub.io/) |
+| **Alpha Vantage** | Historical data, time series | 5 calls/minute, 500/day | [Alpha Vantage](https://www.alphavantage.co/) |
+| **Twelve Data** | Technical indicators | 8 calls/minute, 800/day | [Twelve Data](https://twelvedata.com/) |
+| **Marketaux** | Financial news | 100 calls/day | [Marketaux](https://www.marketaux.com/) |
 
-### Optional Services
-
-| Service | Purpose | Free Tier | Get API Key |
-|---------|---------|-----------|-------------|
-| **Twelve Data** | Technical indicators, advanced data | Yes (8 calls/min) | [Twelve Data](https://twelvedata.com/) |
+**Note**: The system implements automatic fallback between data providers. If one source fails or reaches its rate limit, others will be attempted.
 
 ---
 
 ## 🎯 Usage Examples
 
+### Testing the API
+
+Once the server is running, you can interact with it through:
+
+1. **Swagger UI**: [http://localhost:8001/docs](http://localhost:8001/docs)
+2. **ReDoc**: [http://localhost:8001/redoc](http://localhost:8001/redoc)
+3. **cURL Commands** (examples below)
+
 ### Basic Natural Language Queries
 
 ```bash
 # Current stock status
-curl -X POST "http://localhost:8000/api/v1/analyze" \
+curl -X POST "http://localhost:8001/api/v1/analyze" \
   -H "Content-Type: application/json" \
   -d '{"query": "What is Apple stock price today?"}'
 
 # Historical analysis
-curl -X POST "http://localhost:8000/api/v1/analyze" \
+curl -X POST "http://localhost:8001/api/v1/analyze" \
   -H "Content-Type: application/json" \
   -d '{"query": "How has Tesla performed in the last 7 days?"}'
 
 # Market sentiment
-curl -X POST "http://localhost:8000/api/v1/analyze" \
+curl -X POST "http://localhost:8001/api/v1/analyze" \
   -H "Content-Type: application/json" \
   -d '{"query": "Why did Microsoft stock drop today?"}'
+```
+
+### Using Python Client
+
+```python
+import requests
+import json
+
+url = "http://localhost:8001/api/v1/analyze"
+headers = {"Content-Type": "application/json"}
+data = {"query": "What's happening with NVIDIA stock?"}
+
+response = requests.post(url, headers=headers, json=data)
+result = response.json()
+print(json.dumps(result, indent=2))
+```
+
+### Health Check
+
+```bash
+curl "http://localhost:8001/api/v1/health"
+```
+
+Expected response:
+```json
+{"status": "healthy", "service": "Stock Analysis API"}
 ```
 
 ### Supported Query Types
@@ -246,51 +395,17 @@ The system understands various natural language patterns:
 | `GOOGLE_API_KEY` | Google Gemini API key | - | ✅ |
 | `FINNHUB_API_KEY` | Finnhub API key | - | ✅ |
 | `ALPHA_VANTAGE_API_KEY` | Alpha Vantage API key | - | ✅ |
-| `TWELVE_DATA_API_KEY` | Twelve Data API key | - | ❌ |
-| `ENVIRONMENT` | Runtime environment | development | ❌ |
-| `LOG_LEVEL` | Logging verbosity | INFO | ❌ |
-| `CACHE_TTL` | Cache duration (seconds) | 3600 | ❌ |
+| `TWELVE_DATA_API_KEY` | Twelve Data API key | - | ✅ |
+| `MARKETAUX_API_KEY` | Marketaux news API key | - | ✅ |
+| `ENVIRONMENT` | Runtime environment (development/production) | development | ❌ |
+| `LOG_LEVEL` | Logging verbosity (DEBUG/INFO/WARNING/ERROR) | INFO | ❌ |
+| `CACHE_TTL` | Cache duration in seconds | 3600 | ❌ |
 | `RATE_LIMIT_REQUESTS` | Rate limit per window | 100 | ❌ |
-| `RATE_LIMIT_WINDOW` | Rate limit window (seconds) | 60 | ❌ |
+| `RATE_LIMIT_WINDOW` | Rate limit window in seconds | 60 | ❌ |
+| `REDIS_URL` | Redis connection string (for distributed cache) | None | ❌ |
 
-### Customizing Analysis
 
-Modify `src/adapters/gemini_adapter.py` to customize:
-- Analysis prompts and context
-- Intent extraction logic
-- Response formatting
-- Confidence scoring
-
-### Adding New Data Sources
-
-1. Create a new adapter in `src/adapters/`
-2. Extend `BaseAdapter` class
-3. Implement required methods
-4. Register in relevant agents
-
----
-
-## 🧪 Testing
-
-### Run All Tests
-
-```bash
-pytest -v
-```
-
-### Test Coverage
-
-```bash
-pytest --cov=src tests/
-```
-
-### Manual Testing
-
-Use the interactive documentation at `/docs` to test endpoints manually.
-
----
-
-## 🔍 API Endpoints
+## 🔍 API Reference
 
 ### Analysis Endpoint
 
@@ -305,11 +420,30 @@ Analyze stocks using natural language queries.
 }
 ```
 
+**Parameters:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| query | string | Natural language query or ticker symbol |
+| query_type | string | Either "natural_language" or "structured" |
+| include_fundamentals | boolean | Include fundamental data in response |
+| include_insider_activity | boolean | Include insider trading data |
+
+**Response**: `AnalysisResult` object (see example above)
+
 ### Health Check
 
 **GET** `/api/v1/health`
 
 Check system health and status.
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "service": "Stock Analysis API"
+}
+```
 
 ### Supported Queries
 
@@ -317,73 +451,49 @@ Check system health and status.
 
 Get examples of supported query patterns.
 
----
-
-## 🔧 Project Structure
-
-```
-StockAnalysis/
-├── src/
-│   ├── agents/                 # Multi-agent system
-│   │   ├── base_agent.py      # Base agent class
-│   │   ├── ticker_identification_agent.py
-│   │   ├── ticker_price_agent.py
-│   │   ├── ticker_news_agent.py
-│   │   ├── ticker_price_change_agent.py
-│   │   └── ticker_analysis_agent.py
-│   ├── adapters/              # External API integrations
-│   │   ├── base_adapter.py
-│   │   ├── finnhub_adapter.py
-│   │   ├── alpha_vantage_adapter.py
-│   │   ├── gemini_adapter.py
-│   │   └── twelve_data_adapter.py
-│   ├── models/                # Data models and schemas
-│   │   └── schemas.py
-│   ├── orchestrator/          # Request orchestration
-│   │   └── main_orchestrator.py
-│   ├── presentation/          # API layer
-│   │   └── routes.py
-│   ├── utils/                 # Utilities
-│   │   ├── logger.py
-│   │   ├── cache.py
-│   │   └── rate_limiter.py
-│   └── config.py              # Configuration settings
-├── tests/                     # Test suite
-├── main.py                    # Application entry point
-├── requirements.txt           # Dependencies
-├── .env                       # Environment
-└── README.md                  # Documentation
-```
-
----
-
-## 🚀 Deployment
-
-### Local Development
-
-```bash
-python main.py
+**Response:**
+```json
+{
+  "natural_language_examples": [
+    "Why did Tesla stock drop today?",
+    "What's happening with Apple stock recently?",
+    "How has Microsoft performed this week?",
+    "What's driving Nvidia's stock price?"
+  ],
+  "structured_examples": [
+    {"ticker": "AAPL", "action": "news_and_price"},
+    {"ticker": "TSLA", "action": "analysis", "timeframe": "7d"}
+  ]
+}
 ```
 
 
 ## 🔒 Security & Rate Limiting
 
 - **Rate Limiting**: 30 requests/minute per IP (configurable)
-- **API Key Validation**: All external APIs require valid keys
+- **API Key Security**: All external API keys are stored securely in environment variables
+- **Input Validation**: All requests are validated using Pydantic models
 - **CORS**: Configurable cross-origin resource sharing
-- **Input Validation**: Pydantic models for request validation
+- **Exception Handling**: Comprehensive error handling prevents exposing system details
+
+To adjust rate limits, modify the following environment variables:
+- `RATE_LIMIT_REQUESTS`: Maximum requests per window
+- `RATE_LIMIT_WINDOW`: Time window in seconds
 
 ---
-
 
 ## 📊 Performance & Monitoring
 
 ### Caching Strategy
 
-- **Price Data**: 5-minute cache
-- **News Data**: 30-minute cache
-- **Historical Data**: 1-hour cache
-- **Company Profiles**: 24-hour cache
+The system implements multi-level caching to optimize performance:
+
+- **Price Data**: 5-minute cache (TTL=300)
+- **News Data**: 30-minute cache (TTL=1800)
+- **Historical Data**: 1-hour cache (TTL=3600)
+- **Company Profiles**: 24-hour cache (TTL=86400)
+
+The caching system automatically falls back to memory cache if Redis is not configured.
 
 ### Monitoring Endpoints
 
@@ -391,29 +501,17 @@ python main.py
 - **Metrics**: Available through logging
 - **Rate Limit Status**: Headers in API responses
 
----
+### Logs
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **API Key Errors**
-   - Verify all required API keys are set in `.env`
-   - Check API key quotas and limits
-
-2. **Rate Limiting**
-   - Implement appropriate delays between requests
-   - Consider upgrading API plans for higher limits
-
-3. **Cache Issues**
-   - Clear cache by restarting the application
-   - Check Redis configuration if using external cache
-
-### Debug Mode
-
-Set `LOG_LEVEL=DEBUG` for detailed logging.
+By default, logs are written to the console.
+```bash
+# Enable debug logging
+export LOG_LEVEL=DEBUG
+python main.py
+```
 
 ---
+
 
 ## 📄 License
 
@@ -427,5 +525,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - **Finnhub** for real-time market data
 - **Alpha Vantage** for historical data
 - **FastAPI** for the robust web framework
-
----
+- **Google ADK** for agent development toolkit

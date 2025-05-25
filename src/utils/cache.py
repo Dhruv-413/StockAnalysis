@@ -57,7 +57,6 @@ def cached(ttl: int = 3600):
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # Create more specific cache key that includes all parameters
             # This prevents generic responses for different queries
             cache_key = f"{func.__name__}:{hash(str(args) + str(sorted(kwargs.items())))}"
             

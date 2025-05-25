@@ -83,7 +83,7 @@ class GeminiAdapter:
             Analyze query: "{query}"
 
             Extract:
-            1. "company_name": Full company name or null
+            1. "company_name": Full company name or null (e.g., "Apple Inc.", "Tesla's", "NVIDIA Corporation")
             2. "ticker": Stock ticker symbol or null
             3. "intent": "earnings_check", "price_check", "historical_analysis", "news_summary", "company_profile", or "general_query"
             4. "timeframe": Time period mentioned or "recent"

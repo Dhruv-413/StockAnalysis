@@ -1,11 +1,9 @@
 import httpx
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Tuple, List, Any
-
 from .base_adapter import BaseAdapter 
 from src.config import settings
 from ..utils.cache import cached
-
 class AlphaVantageAdapter(BaseAdapter):
     """
     Adapter for fetching stock data from Alpha Vantage API.
