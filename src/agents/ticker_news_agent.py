@@ -27,11 +27,9 @@ class TickerNewsAgent(BaseAgent):
         finnhub_task = asyncio.create_task(self.finnhub.get_company_news(ticker, days_back))
         marketaux_task = asyncio.create_task(self.marketaux.get_company_news(ticker, days_back))
         yahoo_task = asyncio.create_task(self.yahoo.get_company_news(ticker, days_back))
-        
-        # Gather all results
+
         results = await asyncio.gather(finnhub_task, marketaux_task, yahoo_task, return_exceptions=True)
         
-        # Process results from each source
         news_items = []
         
         # Process each news source's results
@@ -44,14 +42,14 @@ class TickerNewsAgent(BaseAgent):
                 item["source_api"] = source_name
                 news_items.append(item)
         
-        # Remove duplicates (based on title similarity)
+        # Remove duplicates
         deduplicated_news = self._deduplicate_news_items(news_items)
         
-        # Create response - ensure all data is serializable
+        # Create response
         result = {
             "ticker": ticker,
             "news_count": len(deduplicated_news),
-            "news_items": deduplicated_news[:15],  # Limit to top 15 news items
+            "news_items": deduplicated_news[:15],
             "timeframe_days": days_back,
             "sources_used": self._get_sources_used(results)
         }
@@ -67,7 +65,7 @@ class TickerNewsAgent(BaseAgent):
         # Sort by recency first - ensure we're comparing strings
         sorted_news = sorted(
             news_items, 
-            key=lambda x: x.get("published_at", ""),  # This should be string already 
+            key=lambda x: x.get("published_at", ""), 
             reverse=True
         )
         
@@ -101,7 +99,6 @@ class TickerNewsAgent(BaseAgent):
         if not str1 or not str2:
             return 0
             
-        # Very basic similarity - for production you might want a better algorithm
         matches = sum(c1 == c2 for c1, c2 in zip(str1, str2))
         return matches / max(len(str1), len(str2))
     

@@ -31,7 +31,7 @@ class TickerPriceChangeAgent(BaseAgent):
         self.logger.info(f"DEBUG: Fetching historical data for {ticker} over {duration_days} days using Alpha Vantage")
         
         try:
-            # First try Alpha Vantage
+            # Try Alpha Vantage
             historical_data = await self.alpha_vantage_adapter.get_historical_data_optimized(
                 ticker=ticker,
                 days_ago=duration_days
@@ -39,7 +39,7 @@ class TickerPriceChangeAgent(BaseAgent):
             
             self.logger.info(f"DEBUG: Alpha Vantage historical data response: {historical_data}")
 
-            # If Alpha Vantage fails, try Twelve Data
+            # Try Twelve Data
             if not historical_data:
                 self.logger.warning(f"Alpha Vantage data unavailable for {ticker}. Trying Twelve Data as backup...")
                 
@@ -48,7 +48,7 @@ class TickerPriceChangeAgent(BaseAgent):
                     days_ago=duration_days
                 )
                 
-                # If Twelve Data fails, try Yahoo Finance
+                # Try Yahoo Finance
                 if not historical_data:
                     self.logger.warning(f"Twelve Data unavailable for {ticker}. Trying Yahoo Finance as backup...")
                     
@@ -63,7 +63,7 @@ class TickerPriceChangeAgent(BaseAgent):
             
             self.logger.info(f"DEBUG: Historical data received: {historical_data}")
             
-            # Process data into standard format (same regardless of source)
+            # Process data into standard format
             result_dict = {
                 "period": historical_data.get("period_description"), 
                 "open": historical_data.get("start_price"), 

@@ -1,7 +1,3 @@
-"""
-Stock Analysis Multi-Agent System for Google ADK.
-"""
-# Import modules without the problematic attributes
 from .identify_ticker import identify_ticker, identify_ticker_tool, identify_ticker_agent
 from .ticker_price import fetch_price, fetch_price_tool, ticker_price_agent
 from .ticker_news import fetch_news, fetch_news_tool, ticker_news_agent
@@ -11,7 +7,7 @@ from .main import stock_analysis_agent, process_stock_query
 from . import agent
 
 __all__ = [
-    "agent",  # Important: expose the agent module
+    "agent", 
     "identify_ticker_agent",
     "identify_ticker_tool",
     "identify_ticker",

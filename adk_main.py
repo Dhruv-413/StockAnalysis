@@ -1,5 +1,5 @@
 from adk_agents.main import stock_analysis_agent
-from adk_agents.agent import root_agent  # Import from the agent.py module
+from adk_agents.agent import root_agent 
 
 # This module exports the main agent to be used with 'adk api_server'
 # Main agent is now registered with ADK and will be discoverable

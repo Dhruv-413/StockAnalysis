@@ -15,13 +15,12 @@ class YahooFinanceAdapter(BaseAdapter):
         self.logger = logging.getLogger(self.__class__.__name__)
     
     def _get_auth_params(self) -> Dict[str, str]:
-        return {}  # Yahoo Finance doesn't need authentication
+        return {}
     
     @cached(ttl=300)  # Cache for 5 minutes
     async def get_current_price(self, ticker: str) -> Optional[Dict[str, Any]]:
         """Get current price quote for ticker."""
         try:
-            # yfinance is synchronous, so we're wrapping it
             ticker_obj = yf.Ticker(ticker)
             info = ticker_obj.info
             
@@ -59,7 +58,6 @@ class YahooFinanceAdapter(BaseAdapter):
                 self.logger.warning(f"Insufficient Yahoo Finance data points for {ticker}")
                 return None
                 
-            # Get the actual start and end dates based on available data
             actual_end_date = hist_df.index[-1].strftime("%Y-%m-%d")
             
             # Find the proper start date (days_ago)
@@ -107,7 +105,6 @@ class YahooFinanceAdapter(BaseAdapter):
     async def get_company_news(self, ticker: str, days_back: int = 7) -> List[Dict[str, Any]]:
         """Get company news articles."""
         try:
-            # yfinance news functionality is limited, but we can get what's available
             ticker_obj = yf.Ticker(ticker)
             news = ticker_obj.news
             
@@ -127,7 +124,7 @@ class YahooFinanceAdapter(BaseAdapter):
                     "title": article.get("title", ""),
                     "summary": article.get("summary", ""),
                     "source": article.get("publisher", "Yahoo Finance"),
-                    "published_at": published_at.isoformat(),  # Convert to ISO string
+                    "published_at": published_at.isoformat(),
                     "url": article.get("link", ""),
                     "related": ticker,
                     "sentiment": None  # Will be analyzed by Gemini

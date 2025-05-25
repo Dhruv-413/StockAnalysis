@@ -69,7 +69,7 @@ class TwelveDataAdapter(BaseAdapter):
                 "interval": interval,
                 "outputsize": outputsize,
             }
-            # Common endpoint for time series / OHLCV
+            # Common endpoint for time series
             data = await self._make_request("time_series", params)
             return data.get("values") if data and "values" in data else None
         except Exception as e:
@@ -103,7 +103,6 @@ class TwelveDataAdapter(BaseAdapter):
         
         try:
             # For Twelve Data, we need to request enough data points to cover the period
-            # Let's request a bit more than needed to ensure we have enough
             outputsize = days_ago + 10
             
             # Fetch OHLCV data
@@ -113,7 +112,6 @@ class TwelveDataAdapter(BaseAdapter):
                 return None
                 
             # Twelve Data returns data in reverse chronological order (newest first)
-            # Sort to ensure consistency (oldest -> newest)
             sorted_values = sorted(values, key=lambda x: x.get("datetime", ""))
             
             # Get start and end prices

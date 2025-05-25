@@ -3,8 +3,6 @@ from typing import Dict, Any, List
 from google.adk.agents import SequentialAgent, ParallelAgent, Agent
 from google.adk.tools import FunctionTool
 from google.adk.runners import InMemoryRunner
-
-# Import the agent functionality
 from .identify_ticker import identify_ticker_agent, identify_ticker_tool, identify_ticker
 from .ticker_price import ticker_price_agent, fetch_price_tool, fetch_price
 from .ticker_news import ticker_news_agent, fetch_news_tool, fetch_news
@@ -15,13 +13,6 @@ from .ticker_analysis import ticker_analysis_agent, analyze_stock_tool, analyze_
 async def fetch_stock_data(ticker: str, days_back: int = 7) -> Dict[str, Any]:
     """
     Fetches price, news, and price change data in parallel
-    
-    Args:
-        ticker: Stock ticker symbol
-        days_back: Number of days to look back for historical data and news
-        
-    Returns:
-        Dictionary with price_data, news_data, and price_change_data
     """
     if not ticker:
         return {
@@ -52,7 +43,7 @@ async def fetch_stock_data(ticker: str, days_back: int = 7) -> Dict[str, Any]:
 # Create the parallel fetcher tool
 parallel_fetch_tool = FunctionTool(fetch_stock_data)
 
-# Create the parallel fetcher agent - removed needs_model attribute
+# Create the parallel fetcher agent
 parallel_fetch_agent = Agent(
     name="ParallelFetchAgent",
     tools=[parallel_fetch_tool],
@@ -63,12 +54,6 @@ parallel_fetch_agent = Agent(
 async def process_stock_query(query: str) -> Dict[str, Any]:
     """
     Process a natural language query about stocks.
-    
-    Args:
-        query: A natural language query about stocks (e.g., "How is Apple doing today?")
-        
-    Returns:
-        A comprehensive analysis of the stock mentioned in the query
     """
     # Step 1: Identify the ticker
     ticker_info = await identify_ticker(query)
@@ -143,25 +128,9 @@ async def process_stock_query(query: str) -> Dict[str, Any]:
 # Create the main query processing tool
 process_query_tool = FunctionTool(process_stock_query)
 
-# Create the main agent - removed needs_model attribute
+# Create the main agent
 stock_analysis_agent = Agent(
     name="StockAnalysisAgent",
     tools=[process_query_tool],
     description="Analyzes stocks based on natural language queries"
 )
-
-# For running the workflow
-if __name__ == "__main__":
-    # Create a runner with the agent
-    runner = InMemoryRunner(agent=stock_analysis_agent)
-    
-    # Example query
-    query = "How is Apple stock doing today?"
-    
-    # Run the workflow by calling the function directly
-    import asyncio
-    result = asyncio.run(process_stock_query(query))
-    
-    # Print the result
-    print(f"Query: {query}")
-    print(f"Result: {result}")

@@ -5,7 +5,6 @@ from google.adk.agents import Agent
 
 from src.agents.ticker_identification_agent import TickerIdentificationAgent
 
-# Initialize the agent
 ticker_identification_agent = TickerIdentificationAgent()
 
 async def identify_ticker(query: str) -> Dict[str, Any]:
@@ -35,7 +34,6 @@ async def identify_ticker(query: str) -> Dict[str, Any]:
             "error": response.error_message or "Failed to identify ticker"
         }
 
-# Register as ADK Tool
 identify_ticker_tool = FunctionTool(
     identify_ticker
 )
@@ -47,9 +45,3 @@ identify_ticker_agent = Agent(
     description="Identifies the stock ticker symbol from a natural language query."
 )
 
-# For testing this component directly
-if __name__ == "__main__":
-    query = "How is Apple stock performing today?"
-    result = asyncio.run(identify_ticker(query))
-    print(f"Query: {query}")
-    print(f"Result: {result}")

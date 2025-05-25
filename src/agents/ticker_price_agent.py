@@ -17,11 +17,11 @@ class TickerPriceAgent(BaseAgent):
         
         ticker = input_data["ticker"]
         
-        # Try Finnhub first (primary source)
+        # Try Finnhub
         self.logger.info(f"Attempting to fetch price data for {ticker} from Finnhub")
         quote_data = await self.finnhub.get_quote(ticker)
         
-        # If Finnhub fails, try Yahoo Finance
+        # Try Yahoo Finance
         if not quote_data or not quote_data.get("current_price"):
             self.logger.warning(f"Finnhub data unavailable for {ticker}. Trying Yahoo Finance...")
             
@@ -35,7 +35,7 @@ class TickerPriceAgent(BaseAgent):
             except Exception as e:
                 self.logger.error(f"Error getting Yahoo Finance price for {ticker}: {e}")
         
-        # If both Finnhub and Yahoo fail, try Twelve Data as last resort
+        # Try Twelve Data
         if not quote_data or not quote_data.get("current_price"):
             self.logger.warning(f"Yahoo Finance data unavailable for {ticker}. Trying Twelve Data...")
             
@@ -56,7 +56,7 @@ class TickerPriceAgent(BaseAgent):
             except Exception as e:
                 self.logger.error(f"Error getting Twelve Data price for {ticker}: {e}")
         
-        # If all sources failed, raise error
+        # Raise error
         if not quote_data or not quote_data.get("current_price"):
             raise ValueError(f"Could not fetch price data for {ticker} from any source")
         
@@ -64,7 +64,6 @@ class TickerPriceAgent(BaseAgent):
         if "data_source" not in quote_data:
             quote_data["data_source"] = "finnhub"
             
-        # Construct the standardized response
         return {
             "ticker": ticker,
             "current_price": quote_data.get("current_price"),
