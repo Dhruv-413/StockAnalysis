@@ -238,7 +238,6 @@ StockAnalysis/
 │   ├── ticker_price_change.py # Historical data analysis
 │   ├── ticker_analysis.py     # AI analysis
 │   └── main.py                # Agent workflow definitions
-├── tests/                     # Test suite
 ├── main.py                    # FastAPI application entry point
 ├── adk_main.py                # Google ADK entry point
 ├── requirements.txt           # Dependencies
