@@ -81,7 +81,7 @@ A AI-powered stock analysis platform built with FastAPI and Google Gemini. This 
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.10
 - pip package manager
 - Git (for cloning the repository)
 - Node.js v16+ and npm (for ADK Web interface, optional)
