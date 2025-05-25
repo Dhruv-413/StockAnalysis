@@ -1,6 +1,6 @@
 # Stock Analysis Multi-Agent System
 
-A production-ready, AI-powered stock analysis platform built with FastAPI and Google Gemini. This system leverages a sophisticated multi-agent architecture to provide real-time stock insights, natural language query processing, and intelligent market analysis.
+A AI-powered stock analysis platform built with FastAPI and Google Gemini. This system leverages a sophisticated multi-agent architecture to provide real-time stock insights, natural language query processing, and intelligent market analysis.
 
 ---
 
