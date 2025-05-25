@@ -1,16 +1,22 @@
+import logging
 from typing import Dict, Any, Optional
+
 from .base_agent import BaseAgent
 from src.adapters.alpha_vantage_adapter import AlphaVantageAdapter
-from src.models.schemas import PriceChangeData
+from src.adapters.twelve_data_adapter import TwelveDataAdapter
+from src.adapters.yahoo_finance_adapter import YahooFinanceAdapter
 
 class TickerPriceChangeAgent(BaseAgent):
     def __init__(self):
         super().__init__("TickerPriceChangeAgent")
         self.alpha_vantage_adapter = AlphaVantageAdapter()
-
+        self.twelve_data_adapter = TwelveDataAdapter()
+        self.yahoo_finance_adapter = YahooFinanceAdapter()
+        
     async def _execute_logic(self, input_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
-        Calculate price change for a ticker over a given duration using Alpha Vantage historical data.
+        Calculate price change for a ticker over a given duration using historical data.
+        Uses multiple data sources with automatic fallback.
         """
         self.logger.info(f"DEBUG: TickerPriceChangeAgent executing with input: {input_data}")
         self.validate_input(input_data, ["ticker", "duration_days"])
@@ -25,7 +31,7 @@ class TickerPriceChangeAgent(BaseAgent):
         self.logger.info(f"DEBUG: Fetching historical data for {ticker} over {duration_days} days using Alpha Vantage")
         
         try:
-            # Use Alpha Vantage's historical data method
+            # First try Alpha Vantage
             historical_data = await self.alpha_vantage_adapter.get_historical_data_optimized(
                 ticker=ticker,
                 days_ago=duration_days
@@ -33,12 +39,31 @@ class TickerPriceChangeAgent(BaseAgent):
             
             self.logger.info(f"DEBUG: Alpha Vantage historical data response: {historical_data}")
 
+            # If Alpha Vantage fails, try Twelve Data
             if not historical_data:
-                self.logger.error(f"No historical data from Alpha Vantage for {ticker} for {duration_days} days")
-                return None
+                self.logger.warning(f"Alpha Vantage data unavailable for {ticker}. Trying Twelve Data as backup...")
+                
+                historical_data = await self.twelve_data_adapter.get_historical_data_optimized(
+                    ticker=ticker,
+                    days_ago=duration_days
+                )
+                
+                # If Twelve Data fails, try Yahoo Finance
+                if not historical_data:
+                    self.logger.warning(f"Twelve Data unavailable for {ticker}. Trying Yahoo Finance as backup...")
+                    
+                    historical_data = await self.yahoo_finance_adapter.get_historical_data_optimized(
+                        ticker=ticker,
+                        days_ago=duration_days
+                    )
+                    
+                    if not historical_data:
+                        self.logger.error(f"No historical data available from any source for {ticker} for {duration_days} days")
+                        return None
             
             self.logger.info(f"DEBUG: Historical data received: {historical_data}")
             
+            # Process data into standard format (same regardless of source)
             result_dict = {
                 "period": historical_data.get("period_description"), 
                 "open": historical_data.get("start_price"), 
@@ -51,7 +76,7 @@ class TickerPriceChangeAgent(BaseAgent):
                     "start_date_used": historical_data.get("start_date"),
                     "end_date_used": historical_data.get("end_date"),
                     "data_points": historical_data.get("data_points"),
-                    "data_source": "alpha_vantage"
+                    "data_source": historical_data.get("data_source", "unknown")
                 }
             }
             

@@ -3,36 +3,34 @@ Root agent entry point for Google ADK.
 This file must be at the root level for ADK to discover it.
 """
 from typing import ClassVar
-from google.adk.agents import LlmAgent
+from google.adk.agents import Agent
+from google.adk.tools import FunctionTool
 
-class StockAnalysisAgent(LlmAgent):
+# Fix imports to use the functions from the correct files
+from adk_agents.identify_ticker import identify_ticker
+from adk_agents.ticker_price import fetch_price
+from adk_agents.ticker_news import fetch_news
+from adk_agents.ticker_price_change import calculate_price_change
+from adk_agents.ticker_analysis import analyze_stock
+from adk_agents.main import process_stock_query
+
+class StockAnalysisAgent(Agent):
     root_agent: ClassVar[bool] = True
     
     def __init__(self):
-        super().__init__(name="StockAnalysisAgent", model="gemini-1.5-flash")  # Specify model
-    
-    async def run(self, query: str) -> str:
-        """Main method that ADK will call"""
-        # Use your existing orchestrator logic
-        from src.orchestrator.main_orchestrator import MainOrchestrator
-        from src.models.schemas import AnalysisRequest
-        
-        orchestrator = MainOrchestrator()
-        request = AnalysisRequest(query=query)
-        result = await orchestrator.process_request(request)
-        
-        return f"""
-        **{result.ticker} Analysis**
-        
-        {result.analysis_summary}
-        
-        **Price**: ${result.price_data.current_price if result.price_data else 'N/A'}
-        **Change**: {result.price_data.change_percent if result.price_data else 'N/A'}%
-        **Sentiment**: {result.sentiment or 'neutral'}
-        
-        **Key Insights:**
-        {chr(10).join(f"• {insight}" for insight in result.key_insights)}
-        """
+        super().__init__(
+            name="StockAnalysisAgent",
+            model="gemini-1.5-flash",  # Add this line to specify which model to use
+            tools=[
+                FunctionTool(identify_ticker),
+                FunctionTool(fetch_price),
+                FunctionTool(fetch_news),
+                FunctionTool(calculate_price_change),
+                FunctionTool(analyze_stock),
+                FunctionTool(process_stock_query)
+            ],
+            description="Analyzes stocks using natural language queries and provides comprehensive insights"
+        )
 
 # Create the agent instance that ADK expects
 agent = StockAnalysisAgent()

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     redis_url: Optional[str] = None
     rate_limit_requests: int = 100
     rate_limit_window: int = 60
+    marketaux_api_key: str = os.getenv("MARKETAUX_API_KEY", "")
 
     class Config:
         env_file = ".env"
