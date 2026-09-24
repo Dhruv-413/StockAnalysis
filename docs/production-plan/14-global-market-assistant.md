@@ -1,6 +1,6 @@
 # 14 — Global & India Market Assistant ("300 ms daily assistant")
 
-← [Index](README.md) · Related: [02 Thesis](02-product-thesis.md) · [13 Quick-response](13-quick-response-system.md) · [15 Finance-model layer](15-finance-model-layer.md) · [16 India research round 3](16-india-research-round-3.md) · [ADR-008](adr/ADR-008-india-first-market-assistant-scope.md)
+← [Index](README.md) · Related: [02 Thesis](02-product-thesis.md) · [13 Quick-response](13-quick-response-system.md) · [15 Finance-model layer](15-finance-model-layer.md) · [16 India research round 3](16-india-research-round-3.md) · [17 What is achievable](17-what-is-achievable.md) · [ADR-008](adr/ADR-008-india-first-market-assistant-scope.md)
 
 **Status: proposal (2026-09-24). It needs the owner's decision on the open choices in §9.**
 

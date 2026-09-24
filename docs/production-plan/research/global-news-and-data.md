@@ -1,5 +1,8 @@
 # Research: Global news + details sources for an AI market assistant (India + US + global)
 
+> **Corrections (2026-09-24, achievability round; see [17](../17-what-is-achievable.md)):**
+> - **CMIE Prowess:** commercial and database use is **prohibited** (H). Its agreement is "non-commercial" and says the data "may not be used to construct a database of any kind".
+
 Research date / access date for all URLs: **2026-09-24** unless stated. Author role: Market-Data Researcher.
 Confidence: **H** = the vendor's or regulator's own page was fetched and read; **M** = a primary page appeared in search results but was not fully read, or a reputable secondary source was used; **L** = third-party blog, forum or search snippet only.
 Every cost below is an **estimate**. Every "display/summary right" is **unverified** unless it is quoted from the vendor. The right answer is a written licence.

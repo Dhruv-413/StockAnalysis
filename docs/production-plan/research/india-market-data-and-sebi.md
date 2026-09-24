@@ -1,5 +1,11 @@
 # India market data, broker APIs and SEBI posture: research notes
 
+> **Corrections (2026-09-24, achievability round; see [17](../17-what-is-achievable.md)):**
+> - **Real-time on a free-to-user app** costs **₹21L/yr fixed** (NSE 2021 sheet), charged per medium. "NIL" refers to the variable per-user fee only ([data-stack-costs §5](data-stack-costs.md)).
+> - The **15-min delayed fee is annual**: ₹80,000 per segment on the 2022 sheet. The current (2026) value is unknown.
+> - **Indices are a separate licence**: real-time is ₹3L/yr + ₹200 per user per month (2021 sheet).
+> - **Education data lag:** SEBI replaced the 3-month condition with a **30-day lag from 2026-07-01** (circular of 8 May 2026). The lag defines "solely education" status under the association rules. It is not a general ban on price display ([feature-legality](feature-legality.md)).
+
 > **Corrections (2026-09-24, research round 3; see [16](../16-india-research-round-3.md)):**
 > - **Kite display.** No source confirms that a Kite Connect platform may show Kite data, even per user and even after approval. The only direct Zerodha staff statement says a third-party app cannot show Kite data ([kite-and-broker-apis §2](kite-and-broker-apis.md)). Read any "same-user display under platform approval" line below as **unconfirmed**.
 > - **Hosted Kite MCP** is free to users and includes quotes and historical data (Zerodha, 2025-05-20). It has no place, modify or cancel order tools, but it does have GTT, so it is **not strictly read-only**.

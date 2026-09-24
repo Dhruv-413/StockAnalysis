@@ -1,5 +1,10 @@
 # 300 ms market-assistant answer path, plus a TypeSafe Jev deep dive
 
+> **Corrections (2026-09-24, achievability round; see [17](../17-what-is-achievable.md)):**
+> - Mumbai → US-East now measures **193 ms**. From India, US-East is not slower than US-West (198 vs 210 ms, Microsoft data).
+> - **Gemini 2.5 Flash-Lite and 2.5 Flash retire on Vertex (which has a Mumbai region) on 2026-10-20.** OpenAI's India endpoint stores data in India but does **not** process it there ([build-cost-latency](build-cost-latency.md)).
+> - ElastiCache for Valkey is confirmed in Mumbai. Mumbai ↔ Hyderabad is 13.7 ms, which makes Hyderabad viable as a DR region.
+
 Research date: **2026-09-24**. Every URL was accessed on 2026-09-24. Author: tech-scout. Nothing was installed or run. Package facts come from read-only PyPI JSON.
 
 Confidence: **H** = primary source, or several sources agree. **M** = vendor claim or one credible secondary source. **L** = search snippet, summarizer output that could not be cross-checked, or my own derivation.

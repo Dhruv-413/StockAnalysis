@@ -1,5 +1,8 @@
 # US Equity/ETF Market-Data Licensing and Infrastructure Research
 
+> **Corrections (2026-09-24, achievability round; see [17](../17-what-is-achievable.md)):**
+> - **Twelve Data covers NSE/BSE at EOD only** (exchanges page, H).
+
 - **Research and access date:** 2026-09-24. Every source below was accessed on this date.
 - **Scope:** a small commercial web app for self-directed and pro-am US equity/ETF investors. It offers watchlists and explainable alerts on price and volume moves, news, and filings.
 - **Confidence levels:** **H** means a primary source was read directly. **M** means a primary source was read through a summarizer or is partial or older. **L** means a secondary source or a conflicting one.
