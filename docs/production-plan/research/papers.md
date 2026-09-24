@@ -36,6 +36,7 @@ Verdict key:
 | 11 | ALCE; RAGAS; AIS; FActScore | EMNLP 2023; EACL 2024 demo; CL 2023; EMNLP 2023 | MVP (evaluation of explanations) |
 | 12 | FinBen, StockBench, LiveTradeBench, INVESTORBENCH, FinSearchComp, Ploutos, Beyond the Reported Cutoff, Nguyen & Pham 2026 | 2024–2026 | Mixed (see below) |
 | 13 | Shumway 1997; Novy-Marx & Velikov 2016; Frazzini, Israel & Moskowitz 2018; Almgren & Chriss 2000 | JF, RFS, SSRN, J. Risk | Later (backtesting) |
+| 14 | Kronos (Shi et al.); Rahimikia et al.; Noguer i Alonso & Franklin; Brini; MarS; FinVerse; FinGPT / Fin-R1 / Palmyra-Fin | AAAI 2026; arXiv 2025–2026; ICLR 2025 | Kronos: Later (volatility challenger only), never user-facing. Others: evidence inputs (see §14) |
 
 ---
 
@@ -409,3 +410,19 @@ Use two independent raters on **at least 20% overlap** and report Cohen's κ, wi
 - The about 0.9%/yr survivorship figure is attributed to Nguyen & Pham (2026) and was not independently checked.
 - Training-cutoff overlap for TradingAgents' models vs. the Jan–Mar 2024 window was not checked.
 - No dedicated "why is the stock moving" explanation-faithfulness benchmark was found. This is an absence finding.
+
+---
+
+## 14. Financial foundation models (added 2026-09-24)
+
+The full review is in [finance-models-evidence](finance-models-evidence.md), with its registry in §7. The catalogue of models, licences and India coverage is in [finance-models-catalogue](finance-models-catalogue.md). What this means for the plan is in [15](../15-finance-model-layer.md).
+
+- **Kronos** (arXiv 2508.02739, AAAI 2026) is a foundation model for OHLCV candles.
+  - Its training data includes NSE and BSE from 2020 and runs up to 2024-06, so any evaluation before 2024-07 is contaminated.
+  - Its headline results come from the closed Kronos-large.
+  - Independent post-cutoff checks are negative. On NSE its 80% intervals covered only 41.3% of outcomes. On AAPL it did worse than simply repeating the last price. **Verdict:** Later, as a volatility challenger only.
+- **Rahimikia et al. (2511.18578):** off-the-shelf time-series foundation models forecast returns poorly (every out-of-sample R² is negative). Pretraining them on financial data closes the gap to CatBoost.
+- **Noguer i Alonso & Franklin (2606.27100):** 2 of about 50 model–asset pairs are significant under Diebold–Mariano tests, which is what chance alone would produce.
+- **Brini (2607.05291):** only TTM beats Log-HAR on realised volatility, and narrowly. An equal-weight TTM + Log-HAR blend is the most robust option.
+- **MarS (ICLR 2025):** trained on China A-share order data. Never for the MVP.
+- **FinGPT, Fin-R1, Palmyra-Fin:** never for forecasting; later for text tasks, and only with citations.
