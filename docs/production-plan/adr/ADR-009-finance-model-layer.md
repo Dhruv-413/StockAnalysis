@@ -11,7 +11,7 @@
 The owner prefers finance-specialised components, such as Kronos, over general AI models. They are open to a layered design, or a simple one for speed.
 
 The research found:
-- **Kronos:** code and small weights are MIT, and its training data includes NSE and BSE. Its headline gains come from a closed model, and three independent post-cutoff checks are negative, including one on NSE.
+- **Kronos:** code and small weights are MIT, and its training data includes NSE and BSE. Its headline gains come from a closed model. Three independent post-cutoff checks are negative, including one on NSE; each is a single, unreviewed study (confidence M).
 - **Independent studies:** time-series foundation models don't reliably predict returns. For volatility, Log-HAR is the bar to beat. An equal-weight TTM + Log-HAR combination is robust.
 - **Finance LLMs:** self-benchmarked, Chinese-centric, or non-commercial.
 - **India:** no credible India-specific model exists.
@@ -21,6 +21,7 @@ The research found:
    - **L0:** deterministic finance engines (TA-Lib, HAR/EWMA/GARCH, detectors, calendars). They are the only source of numbers on cards.
    - **L1:** internal tagging (a FinBERT-class encoder, optionally Jev).
    - **L2:** batch challengers (TTM, Kronos, FinCast), combined with Log-HAR and scored against it.
+   - L1 and L2 outputs are internal-only fields: never rendered and never passed to the narrative LLM. Replacing an L0 estimate with a gated ensemble needs a new ADR.
    - **L3:** offline research (pyqlib, RD-Agent).
 2. **Pilot runs Option S** (L0, plus rules-based tagging). The L1 and L2 layers are added only after their gates pass.
 3. **Kronos is placed in Assess**, as a volatility or regime challenger only. It is evaluated only on data from 2024-07 onward.

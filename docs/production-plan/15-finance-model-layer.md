@@ -19,15 +19,15 @@ Where the two differ, **the evidence appendix governs**. The catalogue ranked Kr
 1. **The finance-specialised components with proven value are the deterministic engines.** They should be adopted now:
    - **TA-Lib** for indicators.
    - **HAR / Log-HAR, EWMA and GARCH-t** for volatility.
-   - **Qlib factor definitions (Alpha158)** as a research factor library.
-   - **skfolio** for risk.
    - **exchange_calendars** for sessions.
+
+   **skfolio** (risk) and **pyqlib Alpha158** (a research factor library) go to Trial alongside them (§4).
 
    They are fast (sub-millisecond to milliseconds), reproducible and licence-clean. They fit the 300 ms card path in [14 §3](14-global-market-assistant.md#3-300-ms-architecture-india-region).
 2. **Kronos is real, open (MIT code and mini/small/base weights), and its training data includes NSE and BSE.** It has **not** shown that it can predict returns in a way users can act on:
    - **Tiny absolute values.** The headline "+93% RankIC" rests on correlations of about 0.02–0.07.
    - **Closed model.** Those headline numbers come from the closed Kronos-large.
-   - **Three independent post-cutoff checks are negative:**
+   - **Three independent post-cutoff checks are negative.** Each is a single, unreviewed study (confidence M): a pre-registered repo and two GitHub issues.
      - NSE: its 80% intervals covered only 41.3% of outcomes (random walk: 83.7%).
      - AAPL: it did worse than a simple "no change" forecast.
      - BTC and gold: its direction calls were at chance level.
@@ -35,7 +35,10 @@ Where the two differ, **the evidence appendix governs**. The catalogue ranked Kr
    **Place it in Assess**, as an *offline volatility challenger* to Log-HAR. It is not a forecasting feature.
 3. **The one evidence-backed "combination" found** is the equal-weight **TTM r2 + Log-HAR** volatility ensemble. In [Brini 2026](https://arxiv.org/abs/2607.05291) it ranked among the statistically best models (the Model Confidence Set) for 98–100% of 50 assets. This is the pattern we want: *a finance baseline plus a specialised model, combined and scored against the baseline*. A stack of models voting on a prediction is not.
 4. **Nothing generative runs on the 300 ms path.** Kronos, FinCast and LLMs run in batch or at end of day, and write their results into the card store.
-5. **No forecast, target or sentiment score is ever shown to users.** This is CLAUDE.md invariant 5, SEBI Research Analyst (RA) rules plus the PaRRVA performance-verification regime, and FINRA 2210 in the US. Specialised models feed **internal** ranking, tagging, regime flags and anomaly detection only.
+5. **No forecast, target, confidence or sentiment score is ever shown to users.** This is CLAUDE.md invariant 5, SEBI Research Analyst (RA) rules plus the PaRRVA performance-verification regime, and FINRA 2210 in the US.
+   - L1 and L2 outputs are **internal-only fields**: never rendered, used only for news ranking, routing and alert-threshold scaling.
+   - Numbers shown on cards come from L0 deterministic engines only.
+   - If a gated ensemble ever replaces an L0 estimate, that needs its own ADR.
 
 ## 2. Kronos: the facts that matter (details in the [evidence appendix §1](research/finance-models-evidence.md#1-kronos-the-facts))
 
@@ -70,7 +73,7 @@ Where the two differ, **the evidence appendix governs**. The catalogue ranked Kr
 |---|---|---|---|---|---|
 | **TA-Lib 0.8.x** | Indicators | L0 | **Adopt** | BSD | Golden fixtures ([accuracy appendix](research/accuracy-indicators-algos.md)) |
 | **HAR / Log-HAR, EWMA (λ=0.94), GARCH(1,1)-t** (statsmodels/arch) | Volatility, risk bands, abnormal-move scaling | L0 | **Adopt** | BSD / NCSA | Out-of-sample QLIKE vs realised; financial-correctness review |
-| **exchange_calendars** | Sessions and holidays (XNYS, XBOM/XNSE) | L0 | **Adopt** | Apache-2.0 | NSE holiday list reconciled |
+| **exchange_calendars** | Sessions and holidays (XNYS, XBOM; the library has no XNSE calendar) | L0 | **Adopt** | Apache-2.0 | NSE holiday and special-session list reconciled against NSE circulars |
 | **skfolio 1.3.x** | Portfolio and watchlist risk (CVaR, HRP) | L0/L2 | **Trial** | BSD-3 | Fixture tests vs a reference implementation |
 | **IBM TTM r2** | Volatility challenger; equal-weight with Log-HAR | L2 | **Trial** | Apache-2.0 | §6 challenger gate |
 | **FinBERT family** (finbert-tone; ProsusAI) | Headline and filing tone → *internal* ranking | L1 | **Trial (internal only)** | Apache code; finbert-tone HF card has **no licence tag**; ProsusAI was trained on Financial PhraseBank, **CC-BY-NC-SA** → internal baseline only | Labelled India set; macro-F1 vs baseline; licence cleared |
@@ -127,8 +130,8 @@ flowchart TB
     QL[pyqlib factors · RD-Agent · FinText baselines · eval suites]
   end
   E --> P[Card precompute]
-  S --> P
-  ENS -- only if gate passed --> P
+  S -- internal fields only --> P
+  ENS -- internal fields only --> P
   QL -. proposals via ADR .-> E
   P --> C
 ```
@@ -147,14 +150,14 @@ flowchart TB
 
 - **Combine inside a layer, score against the finance baseline.** Example: equal-weight TTM + Log-HAR volatility. A combination ships only if it lands in the Model Confidence Set (the statistically best-model set) and beats Log-HAR on QLIKE, a standard volatility-forecast loss. The test is Diebold–Mariano, with p < 0.05 after Holm correction, in *both* India and the US ([evidence §6(b)](research/finance-models-evidence.md#b-internal-features-for-volatility-regime-and-anomaly-detection-later-as-a-challenger-only)).
 - **Champion/challenger.** The champion (Log-HAR) serves. Challengers run in shadow on data from 2024-07 onward, with a pre-registered split. Promotion is an ADR, not a config flag.
-- **Combine across layers only through the card.** L0 numbers, L1 tags and L2 regime flags are all fields on a timestamped card. The narrative LLM may only phrase card fields, and the verifier drops any number not in the card.
-- **Disagreement is information, not a vote.** When L2 regime flags disagree with L0, the card says "models disagree / low confidence" in words. It never shows an averaged score.
+- **Combine across layers only through the card record.** L0 numbers are the only *displayed* fields. L1 tags and L2 regime flags are stored on the same timestamped record as **internal-only** fields. They may reorder news, choose which card to show, or scale alert thresholds, but they are never rendered or passed to the narrative LLM. The verifier drops any number not in the displayed fields.
+- **Disagreement is logged, not shown.** When L2 flags disagree with L0, the disagreement is logged for the challenger study. Users never see a model confidence or an averaged score.
 
 ## 6. Hard rules for this layer
 
 1. No user-facing forecasts, price targets, probabilities or sentiment scores (invariant 5; SEBI RA rules and PaRRVA; FINRA 2210).
 2. Nothing stochastic or generative on the live path. Record the seed, the ensemble size, and the model commit/hash on every precomputed field.
-3. Every evaluation starts on or after **2024-07-01** for Kronos (its pretraining cutoff), and after each LLM's own cutoff. Log the start date in the experiment manifest.
+3. Every evaluation starts on or after **2024-07-01** for Kronos (its pretraining cutoff), and after each other model's own training cutoff. Where a model's cutoff is unknown (TTM, FinCast), treat the whole period as contaminated until the cutoff is established. Log the start date in the experiment manifest.
 4. Model licence ≠ data rights. For every component, record the code, weights and training-data licences. Kronos's training data has unknown provenance, so it is research-only until counsel clears it.
 5. Fine-tuning on NSE/BSE bars needs a licence that permits model training ([india-market-data-and-sebi](research/india-market-data-and-sebi.md)). Yahoo-sourced data (Qlib `region IN`, `.NS`) is research-only.
 6. Pin GitHub commits for Kronos. Install `pyqlib`, not `qlib`, and TradingAgents from GitHub, not PyPI. tech-scout checks metadata before any install, and the owner approves it.
@@ -164,7 +167,7 @@ flowchart TB
 
 | Risk | Mitigation |
 |---|---|
-| Owner expectation that a "finance AI" predicts prices | This doc plus ADR-009 state it plainly. Show the regime and volatility context, never direction. |
+| Owner expectation that a "finance AI" predicts prices | This doc plus ADR-009 state it plainly. Cards show deterministic volatility and indicator context, never direction. |
 | Too few clean sessions (about 540) for any Sharpe claim | Don't make Sharpe claims. Volatility tests need far fewer sessions than return tests. |
 | NSE price bands cap High/Low and bias range-based volatility estimates | Flag or exclude circuit-hit days (evidence §6(b)) |
 | Kronos stability on Windows (#403), stochastic output | Linux batch workers, fixed seeds, timeouts; the card falls back to the L0 value |
@@ -178,7 +181,7 @@ flowchart TB
 | F-02 | Pre-registered volatility challenger study: TTM r2, Kronos-small/base vs Log-HAR on data from 2024-07 onward, NSE + US, QLIKE/DM/MCS | quant-researcher |
 | F-03 | L1 tagging spike: FinBERT-class encoder CPU latency and macro-F1 on 500 labelled India headlines (English + Hindi) | ml-llm-engineer |
 | F-04 | Licence register for models and datasets (code / weights / training data) | compliance-analyst + security-engineer |
-| F-05 | Card schema fields for regime and volatility flags with model provenance (seed, commit, as_of) | data-engineer |
+| F-05 | Internal-only card-record fields (never rendered) for L1 tags and L2 flags, with model provenance (seed, commit, as_of), and a test proving they never reach the UI or the LLM prompt | data-engineer + qa-engineer |
 | F-06 | Research sandbox: pyqlib Alpha158 on licensed data only, no product path | quant-researcher |
 
 Stage 0 blockers still come first: key rotation, and the NSE/vendor licence answers.

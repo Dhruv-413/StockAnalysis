@@ -1,5 +1,7 @@
 # Research appendix: finance-specialised models and toolkits (Kronos and its peers)
 
+> **Tech-lead note (2026-09-24).** Where this catalogue differs from [finance-models-evidence](finance-models-evidence.md), the evidence appendix governs. That applies in particular to: Kronos as the #1 forecasting feature; Kronos in Trial; and showing a forecast band to users. This catalogue did not take into account the negative post-cutoff NSE replication (kronos-candlecast). The adopted placements are in [15](../15-finance-model-layer.md) and [ADR-009](../adr/ADR-009-finance-model-layer.md): Kronos is in Assess, as an internal volatility challenger only, and no forecasts or sentiment scores are shown to users.
+
 - **Author:** tech-scout
 - **Research date / access date for every URL:** 2026-09-24 unless noted otherwise
 - **Method:** read-only metadata only.
