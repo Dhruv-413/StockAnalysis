@@ -101,6 +101,16 @@ Vendor contracting and interviews run **in parallel** with Stage 0–1 engineeri
 
 Q-01, Q-02 and Q-04 are on the critical path for the detector (T-10) and the evidence ledger (T-19). The others are optional for the pilot.
 
+**India assistant track (if [ADR-008](adr/ADR-008-india-first-market-assistant-scope.md) is accepted).** Tasks I-01 to I-08 in [14 §8](14-global-market-assistant.md#8-plan-changes).
+- **Critical path:**
+  1. I-01 (NSE/vendor licensing).
+  2. I-02 (counsel memo).
+  3. I-03 (card schema and symbol master).
+  4. I-04 (Mumbai card cache and latency harness).
+- **Stop/go gate G-INDIA.** Continue only if both hold:
+  - NSE/BSE and vendor answers give a pilot data cost within the owner's budget;
+  - counsel confirms the information-only posture.
+
 ### Stage 2 — A complete, narrow MVP (6–9 weeks)
 
 - **User-facing outcome:** the five workflows in [02 §4](02-product-thesis.md#core-workflows-mvp), on staging, with invited testers.

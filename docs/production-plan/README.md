@@ -2,6 +2,12 @@
 
 *Prepared 2026-09-24 on branch `v3` at commit `8e8dd33`. This is a plan, not an implementation. No product code was changed.*
 
+> **Scope update (2026-09-24): owner decision pending.**
+>
+> The owner has since asked for a fast daily market assistant that is **India-first plus global**, for users of Zerodha, Groww, Angel One, TradingView and Bloomberg, answering in about 300 ms. [14](14-global-market-assistant.md) and [ADR-008](adr/ADR-008-india-first-market-assistant-scope.md) propose an **information-only India evidence assistant** with **card-first 300 ms answers**, reusing this plan's engine. The US plan below becomes the second leg.
+>
+> Four choices are open: scope, signals, what "300 ms" measures, and whether prices are real-time or delayed ([14 §9](14-global-market-assistant.md#9-decisions-needed-from-the-owner)).
+
 ## Executive overview
 
 **What the repository is today.** A prototype FastAPI + Gemini API that answers free-text questions such as "why did Tesla drop today?". For one ticker it fetches a quote, headlines, and a period change from free-tier APIs, then asks an LLM for a summary. The README describes it as real-time and production-ready. It is neither:
@@ -106,8 +112,9 @@ It ends at the **G-DEMAND**, **G-LATENCY**, and **G-DATA** stop/go gates ([08](0
 | 11 | [Evidence & open questions](11-evidence-and-open-questions.md) | Both: fact vs. assumption register, blockers |
 | 12 | [Team operating model](12-team-operating-model.md) | Everyone: roles, ownership, RACI, workflow, handoffs, agent teams |
 | 13 | [Quick-response system](13-quick-response-system.md) | Both: fast fetch → decide → respond, latency tiers, Jev and similar tools |
-| ADR | [001](adr/ADR-001-product-direction.md) · [002](adr/ADR-002-delayed-first-market-data.md) · [003](adr/ADR-003-modular-monolith-postgres.md) · [004](adr/ADR-004-llm-role-grounded-only.md) · [005](adr/ADR-005-retire-adk-and-nl-orchestrator.md) · [006](adr/ADR-006-quick-response-tier-and-runtime.md) · [007](adr/ADR-007-jev-as-optional-triage-classifier.md) | Durable decisions (all *Proposed*) |
-| Research | [market-data](research/market-data.md) · [products](research/products.md) · [infrastructure](research/infrastructure.md) · [papers](research/papers.md) · [low-latency](research/low-latency.md) · [fast-fetch](research/fast-fetch.md) · [decision-engines](research/decision-engines.md) · [reactive-and-jev](research/reactive-and-jev.md) · [tech-radar](research/tech-radar.md) | Raw evidence with sources |
+| 14 | [Global & India market assistant](14-global-market-assistant.md) | Both: the owner's 300 ms daily-assistant ask; India data and SEBI; card-first architecture; options needing a decision |
+| ADR | [001](adr/ADR-001-product-direction.md) · [002](adr/ADR-002-delayed-first-market-data.md) · [003](adr/ADR-003-modular-monolith-postgres.md) · [004](adr/ADR-004-llm-role-grounded-only.md) · [005](adr/ADR-005-retire-adk-and-nl-orchestrator.md) · [006](adr/ADR-006-quick-response-tier-and-runtime.md) · [007](adr/ADR-007-jev-as-optional-triage-classifier.md) · [008](adr/ADR-008-india-first-market-assistant-scope.md) | Durable decisions (all *Proposed*) |
+| Research | [market-data](research/market-data.md) · [products](research/products.md) · [infrastructure](research/infrastructure.md) · [papers](research/papers.md) · [low-latency](research/low-latency.md) · [fast-fetch](research/fast-fetch.md) · [decision-engines](research/decision-engines.md) · [reactive-and-jev](research/reactive-and-jev.md) · [india-market-data-and-sebi](research/india-market-data-and-sebi.md) · [global-news-and-data](research/global-news-and-data.md) · [assistant-300ms-and-jev](research/assistant-300ms-and-jev.md) · [distribution-and-competitors-india](research/distribution-and-competitors-india.md) · [accuracy-indicators-algos](research/accuracy-indicators-algos.md) · [tech-radar](research/tech-radar.md) | Raw evidence with sources |
 
 **Evidence conventions:**
 - **[Verified]** means executed or read directly.

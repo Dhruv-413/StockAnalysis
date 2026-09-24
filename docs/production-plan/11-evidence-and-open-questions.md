@@ -49,7 +49,7 @@ The appendices were produced by parallel research agents that were told to prefe
 
 ### Blocking before public launch (owner and counsel)
 
-6. **Operating entity, jurisdiction and user geography.** The plan assumes US users. The owner's location and whether non-US users (EU/UK GDPR, India SEBI, etc.) are served are **unknown**.
+6. **Operating entity, jurisdiction and user geography.** The owner's 2026-09-24 request names Groww, Zerodha and Angel One, which points to **India-first**. It is not yet confirmed. See [ADR-008](adr/ADR-008-india-first-market-assistant-scope.md) and [14 §9](14-global-market-assistant.md#9-decisions-needed-from-the-owner). India brings SEBI (RA/IA rules, retail algo framework, 30-day educational data lag), NSE/BSE licensing and the DPDP Rules 2025.
 7. **Publisher's exclusion.** Does it cover per-watchlist alerts and LLM summaries? Is a single canonical explanation per event required? What disclaimers are needed?
 8. **Professional status.** How do we attest professional vs. non-professional status, and what records must we keep under vendor and exchange agreements?
 

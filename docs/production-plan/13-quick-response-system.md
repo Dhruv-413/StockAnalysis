@@ -126,7 +126,7 @@ The owner asked for **Jev "from Typesafe"**.
 - confirm we may send licensed news text to a third party;
 - confirm the serving region, SLA and rate limits.
 
-Decision: [ADR-007](adr/ADR-007-jev-as-optional-triage-classifier.md).
+Decision: [ADR-007](adr/ADR-007-jev-as-optional-triage-classifier.md), amended after a deeper review ([assistant-300ms-and-jev](research/assistant-300ms-and-jev.md)). That review found Jev is US-West only, has no SLA, forbids distillation, and has a 64k context and a 1,200 requests/min limit. **It is used for background tagging only, not on India live paths.** For the India 300 ms assistant, see [14](14-global-market-assistant.md).
 
 **Similar tools, by the job they do:**
 

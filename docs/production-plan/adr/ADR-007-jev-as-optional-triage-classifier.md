@@ -32,6 +32,17 @@ Limitations:
 - **Terms reviewed by `compliance-analyst`** and accepted by the owner. The review covers financial use, data retention and training on inputs, and passing licensed news text to a subprocessor.
 - Rate limits and SLA are adequate, and a fallback path has been tested.
 
+## Amendment (2026-09-24, from the [assistant-300ms-and-jev](../research/assistant-300ms-and-jev.md) research)
+
+Primary-source facts that narrow this decision:
+- **Hosting and latency.** US-West only. The estimate from India is about 320–340 ms p50.
+- **Service terms.** No streaming. No SLA. Liability is capped at the greater of 12 months' fees or $50.
+- **Data handling.** Zero data retention is enterprise-only. **Distillation is forbidden**, so Jev's outputs cannot train our own router.
+- **Limits.** Context is 64k tokens, of which 32k can be state. The rate limit is 1,200 requests/min.
+- **Language and calibration.** English-first. Calibration ECE is about 0.107 (independent test), so re-calibrate on our own labels.
+
+Decision: use Jev **only for background tagging** (news and filings). Keep it off every live answer path serving Indian users ([ADR-008](ADR-008-india-first-market-assistant-scope.md)).
+
 ## Consequences
 - Low integration cost thanks to the interface.
 - Vendor and early-access risk is contained: if Jev fails, fall back to the alternative.
