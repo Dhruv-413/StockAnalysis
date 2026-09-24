@@ -6,5 +6,11 @@ __pycache__/
 .env.development
 .env.test
 .env.production
-docs/
+# Ignore docs/ except the tracked production plan
+docs/*
+!docs/production-plan/
 adk-web/
+# Claude Code personal/local files
+.claude/settings.local.json
+CLAUDE.local.md
+.claude/agent-memory-local/
