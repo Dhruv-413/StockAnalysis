@@ -1,5 +1,9 @@
 # Distribution, competition and positioning research: AI market assistant (India-first plus global)
 
+> **Corrections (2026-09-24, research round 3; see [16](../16-india-research-round-3.md)):**
+> - The 2026-08-17 BusinessToday citation does **not** support the claim that users will build their own AI over broker rails. The closest source is Kailash Nadh's "walled gardens" line, as quoted in Kamath's Kite MCP post ([case-studies](case-studies.md)).
+> - **Groww has an official hosted MCP** (`mcp.groww.in`), and it **can place orders**. The claim below that none exists is wrong ([official-sources-and-tools §4](official-sources-and-tools.md)).
+
 Research date: 2026-09-24. All URLs were accessed 2026-09-24 unless noted. Confidence: H = primary source read, M = reputable secondary or a primary search snippet, L = vendor or SEO blog, or unconfirmed.
 Labels used: **[F]** verified fact, **[I]** inference, **[A]** assumption, **[E]** estimate, **[P]** proposal.
 

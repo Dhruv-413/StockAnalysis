@@ -1,5 +1,11 @@
 # India market data, broker APIs and SEBI posture: research notes
 
+> **Corrections (2026-09-24, research round 3; see [16](../16-india-research-round-3.md)):**
+> - **Kite display.** No source confirms that a Kite Connect platform may show Kite data, even per user and even after approval. The only direct Zerodha staff statement says a third-party app cannot show Kite data ([kite-and-broker-apis §2](kite-and-broker-apis.md)). Read any "same-user display under platform approval" line below as **unconfirmed**.
+> - **Hosted Kite MCP** is free to users and includes quotes and historical data (Zerodha, 2025-05-20). It has no place, modify or cancel order tools, but it does have GTT, so it is **not strictly read-only**.
+> - **Broker API table.** Groww costs ₹499/mo (early bird) or ₹2,000/mo (standard). Upstox staff say it provides "no market data for commercial purposes". Fyers' terms bar using its data to build "charting, technical tools".
+> - **Static-IP rule** (SEBI retail algo framework): covers order endpoints only. Read-only use still needs a per-user login with 2FA and a daily re-login.
+
 Research date: 2026-09-24. Author role: Market-Data Researcher. Nothing in this file is legal advice. Every claim is labelled:
 - **[F]** verified fact from a primary source;
 - **[F-sec]** fact taken from a secondary source or a search summary, because the primary page timed out or returned only headers;

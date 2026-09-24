@@ -1,5 +1,9 @@
 # Research: Accuracy, reliability and honest claims for an AI trading assistant (India F&O/equities, US, global)
 
+> **Corrections (2026-09-24, research round 3; see [16](../16-india-research-round-3.md)):**
+> - **Expiry-day timeline.** There was an interim period before the September 2025 swap: from January 2025, BSE index derivatives expired on Tuesday and NSE's on Thursday ([papers-india](papers-india.md)).
+> - `exchange_calendars` has **XBOM but no XNSE** calendar (README checked 2026-09-24). Reconcile NSE holidays and special sessions against NSE circulars.
+
 Research date: 2026-09-24. Author role: Quant Researcher. Status: research input for 06-quantitative-validation.md and research/papers.md, not a decision.
 Labels: **[V]** verified fact, with a source and confidence H/M/L. **[I]** inference. **[A]** assumption. **[P]** proposal or spec (ours; no external source). **[U]** unverified.
 All URLs accessed on 2026-09-24 unless stated otherwise.

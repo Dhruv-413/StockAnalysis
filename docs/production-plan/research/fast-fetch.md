@@ -1,5 +1,8 @@
 # Fast-fetch research: market data, news, filings, events (US equities/ETFs)
 
+> **Corrections (2026-09-24, research round 3; see [16](../16-india-research-round-3.md)):**
+> - `sec-edgar-mcp` is **AGPL-3.0**. Hold for product use.
+
 Research date: 2026-09-24. All URLs accessed 2026-09-24 unless noted.
 Confidence: H = official vendor doc/PyPI read directly; M = vendor marketing, a search summary of an official page, or a reputable secondary source; L = third-party blog, aggregator, or unverified claim.
 Pricing already covered in earlier research is not repeated here; only new price points are listed.
